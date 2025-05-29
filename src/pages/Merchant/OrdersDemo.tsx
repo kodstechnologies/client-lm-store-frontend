@@ -265,7 +265,7 @@ const OrdersDemo = () => {
         setError(null)
         try {
             const response = await fetchAllOrders()
-            console.log("🚀 ~ loadOrders ~ response:", response)
+            // console.log("🚀 ~ loadOrders ~ response:", response)
             setOrders(response.data.data)
         } catch (err: any) {
             setError("Failed to load orders.")
@@ -276,14 +276,14 @@ const OrdersDemo = () => {
     }
 
     const handleSearch = async (phoneNumber: string) => {
-        console.log("🚀 ~ handleSearch ~ phoneNumber:", phoneNumber)
+        // console.log("🚀 ~ handleSearch ~ phoneNumber:", phoneNumber)
         setSearchLoading(true)
         setError(null)
         setIsSearchMode(true)
 
         try {
             const response = await searchOrderByPhoneNumber(phoneNumber)
-            console.log("🚀 ~ handleSearch ~ response:", response)
+            // console.log("🚀 ~ handleSearch ~ response:", response)
             setOrders(response || [])
         } catch (err: any) {
             console.error("Search error:", err)
@@ -331,7 +331,7 @@ const OrdersDemo = () => {
     }, [successMessage])
 
     const toggleRow = (rowId: string) => {
-        console.log("Toggling row:", rowId, "Current expanded:", expandedRow)
+        // console.log("Toggling row:", rowId, "Current expanded:", expandedRow)
         setExpandedRow(expandedRow === rowId ? null : rowId)
     }
 
@@ -340,7 +340,7 @@ const OrdersDemo = () => {
             // Add to completing orders set
             setCompletingOrders((prev) => new Set(prev).add(orderId))
 
-            console.log("Completing order:", orderId)
+            // console.log("Completing order:", orderId)
 
             // Call API to update order status
             const response = await updateOrderById(orderId)
@@ -360,7 +360,7 @@ const OrdersDemo = () => {
                 // Show success message
                 setSuccessMessage(`Order ${orderId} completed successfully!`)
 
-                console.log("Order completed successfully:", orderId)
+                // console.log("Order completed successfully:", orderId)
             } else {
                 throw new Error("Failed to complete order")
             }

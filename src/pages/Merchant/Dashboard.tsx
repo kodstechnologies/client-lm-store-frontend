@@ -4,6 +4,7 @@ import { setPageTitle } from '../../store/themeConfigSlice';
 import ReactApexChart from 'react-apexcharts';
 import { IRootState } from '../../store';
 import { getStatusCounts, stats } from '../../api';
+import { ApexOptions } from 'apexcharts';
 
 type Series = {
     name: string;
@@ -45,50 +46,39 @@ const donutChart: any = {
     },
 };
 
-const donutChartOptions = {
+const donutChartOptions: ApexOptions = {
     chart: {
         height: 300,
         type: 'donut',
-        zoom: {
-            enabled: false,
-        },
-        toolbar: {
-            show: false,
-        },
+        zoom: { enabled: false },
+        toolbar: { show: false },
     },
-    stroke: {
-        show: false,
-    },
+    stroke: { show: false },
     labels: ['Number Of QR generated Orders', 'Number Of Completed Orders'],
     colors: ['#4361ee', '#e2a03f'],
     responsive: [
         {
             breakpoint: 480,
             options: {
-                chart: {
-                    width: 200,
-                },
+                chart: { width: 200 },
             },
         },
     ],
-    legend: {
-        position: 'bottom',
-    },
+    legend: { position: 'bottom' },
     dataLabels: {
         formatter: function (val: number, opts: any) {
-            // Show the raw value instead of percentage
-            return opts.w.config.series[opts.seriesIndex];
+            const series = opts.w.config.series as number[];
+            return series[opts.seriesIndex];
         }
     },
-    tooltip: {
-        y: {
-            formatter: function (val: number) {
-                return val;
-            }
-        }
-    }
+    // tooltip: {
+    //     y: {
+    //         formatter: function (val: number) {
+    //             return val;
+    //         }
+    //     }
+    // }
 };
-
 const Dashboard = () => {
     const [donutSeries, setDonutSeries] = useState<number[]>([0, 0]);
     const [areaSeries, setAreaSeries] = useState<Series[]>([]);

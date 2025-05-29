@@ -48,7 +48,7 @@ export const sendOtpForEligibilityCheck = async (payload: any) => {
             }
         )
 
-        console.log("🚀 ~ sendOtpForEligibilityCheck ~ res:", res)
+        // console.log("🚀 ~ sendOtpForEligibilityCheck ~ res:", res)
         return res;
     } catch (error: any) {
         console.error('API Error:', error.response?.data || error.message);
@@ -68,7 +68,7 @@ export const verifyOtpForEligibilityCheck = async (payload: any) => {
                 }
             }
         );
-        console.log("🚀 ~ verifyOtpForEligibilityCheck ~ res:", res);
+        // console.log("🚀 ~ verifyOtpForEligibilityCheck ~ res:", res);
         return res.data;
     } catch (error: any) {
         console.error('API Error:', error.response?.data || error.message);
@@ -126,7 +126,7 @@ export const fetchAllOrders = async () => {
 export const updateOrderById = async (orderId: string) => {
     try {
         const token = localStorage.getItem("authToken");
-        console.log("🚀 ~ updateOrderById ~ token:", token);
+        // console.log("🚀 ~ updateOrderById ~ token:", token);
 
         const res = await api.put(
             `/update-order-by-id/${orderId}`,
@@ -171,7 +171,7 @@ export const getStatusCounts = async () => {
                 Authorization: `Bearer ${token}`
             }
         })
-        console.log("🚀 ~ getStatusCounts ~ res:", res.data)
+        // console.log("🚀 ~ getStatusCounts ~ res:", res.data)
         return res.data;
     } catch (error: any) {
         console.error(" error:", error);
@@ -188,7 +188,7 @@ export const stats = async () => {
                 Authorization: `Bearer ${token}`
             }
         })
-        console.log("🚀 ~ stats ~ res:", res.data)
+        // console.log("🚀 ~ stats ~ res:", res.data)
         return res;
     } catch (error:any) {
         console.error(" error:", error);

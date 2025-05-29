@@ -40,7 +40,7 @@ const MerchantSupport = () => {
             alert('Please fill all required fields.');
             return;
         }
-        console.log('Form Data:', formData);
+        // console.log('Form Data:', formData);
         // Add logic to submit the form data (e.g., API call)
     };
     

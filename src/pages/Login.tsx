@@ -46,7 +46,7 @@ const Login = () => {
             setCountdown(30); // Start countdown
             showMessage('OTP sent');
             const response = await mobileVerify({ mobileNumber: formik.values.contactNo });
-            console.log("🚀 ~ handleSendOtp ~ response:", response)
+            // console.log("🚀 ~ handleSendOtp ~ response:", response)
             setOtpSent(true);
             setTimer(60);
 

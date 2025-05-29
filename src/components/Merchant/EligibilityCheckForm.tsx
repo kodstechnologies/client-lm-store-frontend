@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { Formik, Form, Field, ErrorMessage } from "formik"
 import * as Yup from "yup"
 import { AlertCircle, CheckCircle2, ArrowLeft, Loader2 } from "lucide-react"
@@ -77,14 +77,10 @@ const EligibilityCheckForm = () => {
     const [isResendingOtp, setIsResendingOtp] = useState(false)
     const [isGeneratingQR, setIsGeneratingQR] = useState(false)
 
-    const inputRefs = useRef<(HTMLInputElement | null)[]>([
-        useRef<HTMLInputElement>(null),
-        useRef<HTMLInputElement>(null),
-        useRef<HTMLInputElement>(null),
-        useRef<HTMLInputElement>(null),
-        useRef<HTMLInputElement>(null),
-        useRef<HTMLInputElement>(null),
-    ]).current
+    const inputRefs = useRef<Array<React.RefObject<HTMLInputElement>>>(
+        Array.from({ length: 6 }, () => React.createRef<HTMLInputElement>())
+    ).current;
+
 
     // Load persisted state on component mount
     useEffect(() => {
@@ -211,13 +207,14 @@ const EligibilityCheckForm = () => {
             })
 
             const otpSent = await sendOtpForEligibilityCheck({ mobileNumber: values.mobileNumber })
-            console.log("🚀 ~ handlePhoneSubmit ~ otpSent:", otpSent)
+            // console.log("🚀 ~ handlePhoneSubmit ~ otpSent:", otpSent)
             if (otpSent) {
                 setStep(2)
             }
         } catch (error) {
             console.error("Error sending OTP:", error)
-            alert("Failed to send OTP. Please try again.")
+            // alert("Failed to send OTP. Please try again.")
+            setOtpError("Failed to send OTP. Please try again.")
         } finally {
             setIsLoadingOtp(false)
         }
@@ -225,7 +222,7 @@ const EligibilityCheckForm = () => {
 
     const handleOtpSubmit = async (values: OtpFormValues) => {
         const otpString = values.otp.join("")
-        console.log("🚀 ~ handleOtpSubmit ~ otpString:", otpString)
+        // console.log("🚀 ~ handleOtpSubmit ~ otpString:", otpString)
 
         setIsVerifyingOtp(true)
         setOtpError("")
@@ -237,7 +234,7 @@ const EligibilityCheckForm = () => {
                 otp: otpString,
             })
 
-            console.log("🚀 ~ handleOtpSubmit ~ res:", res)
+            // console.log("🚀 ~ handleOtpSubmit ~ res:", res)
 
             if (res.success) {
                 setOtpSuccess(true)
@@ -287,23 +284,25 @@ const EligibilityCheckForm = () => {
     }
 
     const handleFinalSubmit = async (values: FormValues) => {
+
+
         setIsCheckingEligibility(true)
-        setEligibilityError("")
 
         const finalValues = {
             ...values,
             dob: `${values.dob_year}-${values.dob_month.padStart(2, "0")}-${values.dob_day.padStart(2, "0")}`,
         }
 
-        console.log("Final form submission:", finalValues)
+        // console.log("Final form submission:", finalValues)
+        setEligibilityError("")
 
         try {
             const response = await eligibleCheckApi(finalValues)
-            console.log("Eligibility check response:", response.data)
+            // console.log("Eligibility check response:", response.data)
 
+            const customerId = response.data.data._id
+            const eligibilityData = response.data.data
             if (response.data.success) {
-                const customerId = response.data.data._id
-                const eligibilityData = response.data.data
 
                 // Set eligibility amount and tenure from API response
                 if (eligibilityData.max_eligibility_amount) {
@@ -312,18 +311,30 @@ const EligibilityCheckForm = () => {
                 if (eligibilityData.tenure) {
                     setEligibilityTenure(eligibilityData.tenure)
                 }
-
-                console.log("🚀 ~ handleFinalSubmit ~ customerId:", customerId)
+                // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData.eligibility_status:", eligibilityData.eligibility_status)
+                if (eligibilityData.eligibility_status === false) {
+                    setEligibilityError(eligibilityData.message || "Not eligible.")
+                }
+                // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData.message:", eligibilityData.message)
+                // console.log("🚀 ~ handleFinalSubmit ~ customerId:", customerId)
                 const order = await createOrderForEligible({ customerId })
                 if (order?.data?.order?.qrUrl) {
-                    console.log("QR URL:", order.data.order.qrUrl)
+                    // console.log("QR URL:", order.data.order.qrUrl)
                     setQrUrl(order.data.order.qrUrl)
                 }
                 setStep(4)
-                console.log("🚀 ~ handleFinalSubmit ~ order:", order)
-            } else {
-                setEligibilityError(response.data.message || "Not eligible.")
-                setEligibilityError("You are not eligible. This PAN is already in use.")
+                // console.log("🚀 ~ handleFinalSubmit ~ order:", order)
+            }
+            else {
+                const eligibilityData = response.data
+                // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData:", eligibilityData)
+
+                // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData.message:", eligibilityData.message)
+                if (eligibilityData.message) {
+                    setEligibilityError(eligibilityData.message)
+
+                }
+                // setEligibilityError("You are not eligible.")
             }
         } catch (error: any) {
             console.error("Eligibility API error:", error)
@@ -394,9 +405,19 @@ const EligibilityCheckForm = () => {
                     {/* Step 1: Phone Number */}
                     {step === 1 && (
                         <Formik
-                            initialValues={{ mobileNumber: formValues.mobileNumber }}
+                            initialValues={{
+                                mobileNumber: formValues.mobileNumber, first_name: "",
+                                last_name: "",
+                                pan: "",
+                                pincode: "",
+                                dob_day: "",
+                                dob_month: "",
+                                dob_year: "",
+                                income: "",
+                            }}
                             validationSchema={phoneValidationSchema}
                             onSubmit={handlePhoneSubmit}
+
                         >
                             {({ values, setFieldValue }) => (
                                 <Form className="space-y-4">

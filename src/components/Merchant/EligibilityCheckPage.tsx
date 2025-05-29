@@ -8,7 +8,7 @@ const EligibilityCheckPage = () => {
       <div>
         <ul className="flex space-x-2 rtl:space-x-reverse">
           <li>
-            <Link to="/merchant" className="text-primary hover:underline">
+            <Link to="/merchant/dashboard" className="text-primary hover:underline">
               Dashboard
             </Link>
           </li>
