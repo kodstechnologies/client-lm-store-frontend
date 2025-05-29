@@ -104,10 +104,12 @@ const Login = () => {
         otp4: Yup.string().required('Required').length(1, 'Must be 1 character'),
         otp5: Yup.string().required('Required').length(1, 'Must be 1 character'),
     });
+
     const handleLogin = async (values: FormValues) => {
         const otp = `${values.otp0}${values.otp1}${values.otp2}${values.otp3}${values.otp4}${values.otp5}`;
 
         try {
+            
             const response = await verifyOtp({ mobileNumber: values.contactNo, otp });
 
             console.log("🚀 ~ handleLogin ~ response:", response)
