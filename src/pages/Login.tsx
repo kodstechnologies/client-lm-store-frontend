@@ -109,7 +109,7 @@ const Login = () => {
         const otp = `${values.otp0}${values.otp1}${values.otp2}${values.otp3}${values.otp4}${values.otp5}`;
 
         try {
-            
+
             const response = await verifyOtp({ mobileNumber: values.contactNo, otp });
 
             console.log("🚀 ~ handleLogin ~ response:", response)
@@ -124,7 +124,7 @@ const Login = () => {
                 localStorage.setItem('storeName', response.storeName);
                 localStorage.setItem('storeEmail', response.storeEmail);
                 localStorage.setItem('storeMerchantName', response.storeMerchantName)
-                const storecode=localStorage.setItem('storeCode', response.StoreCode)
+                const storecode = localStorage.setItem('storeCode', response.StoreCode)
                 console.log("🚀 ~ handleLogin ~ storecode:", storecode)
                 const phone = localStorage.setItem('storePhone', response.storePhone)
                 // console.log("🚀 ~ handleLogin ~ phone:", phone)
@@ -219,11 +219,11 @@ const Login = () => {
 
                                                 <label htmlFor="agree" className="text-sm text-gray-700">
                                                     By clicking <strong>Continue</strong>, you agree to our{' '}
-                                                    <a href="https://littlemoneyindia.com/privacy-policy" target="_blank" className="text-blue-600 underline">
+                                                    <a href="https://littlemoney.co.in/privacy-policy" target="_blank" className="text-blue-600 underline">
                                                         Privacy Policy
                                                     </a>{' '}
                                                     and{' '}
-                                                    <a href="https://littlemoneyindia.com/terms-use" target="_blank" className="text-blue-600 underline">
+                                                    <a href="https://littlemoney.co.in/terms-use" target="_blank" className="text-blue-600 underline">
                                                         Terms & Conditions
                                                     </a>.
                                                 </label>
