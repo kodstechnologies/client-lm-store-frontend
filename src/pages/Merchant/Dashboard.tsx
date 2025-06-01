@@ -194,10 +194,10 @@ const Dashboard = () => {
                     </div>
                     <div className="font-semibold">
                         {/* <h6>Store Name</h6> */}
-                        <h5 className="font-semibold">Merchant name: {storeName}</h5>
+                        <h5 className="font-semibold">Store name: {storeName}</h5>
                         {/* <h6>Phone Number</h6> */}
                         {/* <h5 className="font-semibold">Phone Number: {storePhone}</h5> */}
-                        <h5>Store Name: {storeMerchantName}</h5>
+                        {/* <h5>Store Name: {storeMerchantName}</h5> */}
                         <h5>Store Id:{storeCode}</h5>
                     </div>
                     {/* <div className="font-semibold ml-auto">

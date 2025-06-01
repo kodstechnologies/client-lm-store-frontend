@@ -203,7 +203,7 @@ const Header = () => {
                         <div className="sm:ltr:mr-auto sm:rtl:ml-auto"></div>
 
 
-                        <button
+                        {/* <button
                             className="flex items-center text-white font-bold outline-none px-2 py-2 rounded-md relative text-xl  cursor-pointer bg-[#0052cc] hover:bg-[#003d99] hover:scale-105 duration-300"
                             onClick={() => setIsOpen(true)}
                         >
@@ -224,7 +224,7 @@ const Header = () => {
 
                             {screenSize >= 720 && <span>Loyalty 45</span>}
 
-                        </button>
+                        </button> */}
 
 
 
@@ -268,7 +268,7 @@ const Header = () => {
                                 </button>
                             )}
                         </div>
-                        <div className="dropdown shrink-0">
+                        {/* <div className="dropdown shrink-0">
                             <Dropdown
                                 offset={[0, 8]}
                                 placement={`${isRtl ? 'bottom-start' : 'bottom-end'}`}
@@ -341,7 +341,7 @@ const Header = () => {
                                     )}
                                 </ul>
                             </Dropdown>
-                        </div>
+                        </div> */}
                         <div className="dropdown shrink-0 flex">
                             <Dropdown
                                 offset={[0, 8]}

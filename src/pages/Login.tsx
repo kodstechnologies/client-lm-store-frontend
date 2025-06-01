@@ -43,19 +43,61 @@ const Login = () => {
     const inputRefs = useRef<HTMLInputElement[]>([]);
     const handleSendOtp = async () => {
         try {
-            setCountdown(30); // Start countdown
-            showMessage('OTP sent');
-            const response = await mobileVerify({ mobileNumber: formik.values.contactNo });
-            // console.log("🚀 ~ handleSendOtp ~ response:", response)
-            setOtpSent(true);
-            setTimer(60);
-
-            if (response?.status === 'success') {
-                showMessage('OTP sent successfully');
+            // Optional frontend validation before sending
+            if (!formik.values.contactNo || formik.values.contactNo.length !== 10) {
+                showMessage('Please enter a valid 10-digit mobile number', 'error');
+                return;
             }
-        } catch (error) {
+
+            showMessage('Sending OTP...');
+
+            // Make API request
+            const response = await mobileVerify({ mobileNumber: formik.values.contactNo });
+
+            // console.log("🚀 ~ handleSendOtp ~ response:", response)
+            // Check if the response indicates success
+            if (response?.success) {
+                showMessage('OTP sent successfully');
+                setOtpSent(true);
+                setTimer(60);
+                setCountdown(30);
+                hidefunction(); // Only transition to OTP screen on success
+            } else {
+                // Handle case where response doesn't have success flag
+                showMessage(response?.data?.message || 'Failed to send OTP', 'error');
+            }
+        } catch (error: any) {
             console.error('Error sending OTP:', error);
-            showMessage('Failed to send OTP', 'error');
+
+            if (error.response) {
+                // Handle specific backend error responses
+                const { status, data } = error.response;
+
+                switch (status) {
+                    case 404:
+                        showMessage('Mobile number not registered as a Store or Merchant', 'error');
+                        break;
+                    case 400:
+                        showMessage(data.message || 'Invalid mobile number format', 'error');
+                        break;
+                    case 500:
+                        showMessage('Server error. Please try again later.', 'error');
+                        break;
+                    default:
+                        showMessage(data.message || 'Failed to send OTP', 'error');
+                }
+            } else if (error.request) {
+                // Network error
+                showMessage('Network error. Please check your connection.', 'error');
+            } else {
+                // Other errors
+                showMessage('Something went wrong. Please try again.', 'error');
+            }
+
+            // Reset states on error
+            setOtpSent(false);
+            setCountdown(0);
+            setTimer(0);
         }
     };
 
@@ -181,7 +223,7 @@ const Login = () => {
                     <div className="relative flex flex-col justify-center rounded-md bg-white/60 backdrop-blur-lg dark:bg-black/50 px-6 lg:min-h-[758px] py-20">
                         <div className="mx-auto w-full max-w-[440px]">
                             <div className="w-36 h-36">
-                                <img src={Logo} alt="" className="w-full h-full object-contain" />
+                                <img src={Logo || "/placeholder.svg"} alt="" className="w-full h-full object-contain" />
                             </div>
                             <div className="mb-10">
                                 <h1 className="text-3xl font-extrabold uppercase !leading-snug text-primary md:text-4xl">Login</h1>
@@ -232,13 +274,11 @@ const Login = () => {
                                                 type="button"
                                                 onClick={() => {
                                                     if (formik.values.contactNo.match(/^\d{10}$/)) {
-                                                        handleSendOtp();
-                                                        hidefunction();
+                                                        handleSendOtp(); // Remove hidefunction() from here
                                                     } else {
                                                         formik.setTouched({ contactNo: true });
                                                     }
                                                 }}
-
                                                 className="w-full btn-success mt-5 p-3"
                                             >
                                                 {countdown > 0 ? `Resend OTP in ${countdown}s` : 'Continue'}
