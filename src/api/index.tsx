@@ -123,6 +123,30 @@ export const fetchAllOrders = async () => {
         throw error;
     }
 }
+
+
+export const fetchOrdersByStore = async () => {
+    try {
+        const token = localStorage.getItem("authToken");
+
+        if (!token) {
+            throw new Error("Authentication token not found");
+        }
+
+        const res = await api.get('/orders-by-store', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        console.log("res fro orders by id", res);
+
+        return res.data; // optional: you can return just the data
+    } catch (error) {
+        console.error("Error fetching orders by store:", error);
+        throw error;
+    }
+};
+
 export const updateOrderById = async (orderId: string) => {
     try {
         const token = localStorage.getItem("authToken");
@@ -190,7 +214,7 @@ export const stats = async () => {
         })
         // console.log("🚀 ~ stats ~ res:", res.data)
         return res;
-    } catch (error:any) {
+    } catch (error: any) {
         console.error(" error:", error);
         throw error.response?.data?.message || 'Something went wrong';
     }

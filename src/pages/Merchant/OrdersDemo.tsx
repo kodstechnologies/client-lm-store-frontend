@@ -17,7 +17,7 @@ import RemarkDetails from "../../components/order_status/RemarkDetails"
 import UTRDetails from "../../components/order_status/UTRDetails"
 import RejectedRemark from "../../components/order_status/RejectedRemark"
 import CompletedStatusEmiDetails from "../../components/order_status/CompletedStatusEmiDetails"
-import { fetchAllOrders, updateOrderById, searchOrderByPhoneNumber } from "../../api"
+import { fetchAllOrders, updateOrderById, searchOrderByPhoneNumber, fetchOrdersByStore } from "../../api"
 
 interface AccordionContentProps {
     status: string
@@ -264,9 +264,9 @@ const OrdersDemo = () => {
         setLoading(true)
         setError(null)
         try {
-            const response = await fetchAllOrders()
+            const response = await fetchOrdersByStore()
             // console.log("🚀 ~ loadOrders ~ response:", response)
-            setOrders(response.data.data)
+            setOrders(response.data)
         } catch (err: any) {
             setError("Failed to load orders.")
             console.error(err)
