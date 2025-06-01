@@ -437,13 +437,14 @@ const OrdersDemo = () => {
                     <div className="relative w-[600px]">
                         <input
                             type="text"
-                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="Search by Phone Number"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
+                        {/* Search Icon */}
                         <svg
-                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-500 w-4 h-4"
+                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-500 w-4 h-4 pointer-events-none"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -455,21 +456,26 @@ const OrdersDemo = () => {
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                             />
                         </svg>
+
+                        {/* Loading Spinner */}
                         {searchLoading && (
-                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
                                 <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
                             </div>
                         )}
-                        {search && (
+
+                        {/* Clear Button */}
+                        {search && !searchLoading && (
                             <button
                                 onClick={handleClearSearch}
-                                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-300"
+                                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-500 text-white text-sm px-2 py-1 rounded hover:bg-gray-600"
                             >
                                 Clear
                             </button>
                         )}
                     </div>
                 </div>
+
                 {isSearchMode && (
                     <div className="mt-2 text-sm text-gray-600">
                         {searchLoading
@@ -485,6 +491,7 @@ const OrdersDemo = () => {
                     <span className="ml-2">Loading orders...</span>
                 </div>
             )}
+
 
             {!loading && !error && (
                 <>
