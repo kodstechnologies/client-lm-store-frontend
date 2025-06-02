@@ -7,6 +7,8 @@ import { IoIosArrowDropright, IoIosArrowDropdown } from "react-icons/io"
 import { IoMdArrowDropdownCircle } from "react-icons/io"
 import { IoMdArrowDroprightCircle } from "react-icons/io"
 import { Loader2, CheckCircle2, QrCode } from "lucide-react"
+// const backendApiBaseUrl = import.meta.env.VITE_BACKEND_API_URL;
+// const backendHostedQRUrl=import.meta.env.VITE_BACKEND_HOSTED_QRURL
 import QRCode from "react-qr-code"
 
 // Import your components
@@ -33,7 +35,7 @@ const AccordionContent = ({ status, orderId, qrUrl, onCompleteOrder, isCompletin
 
     const handleQRClick = () => {
         // On click, redirect to FatakPay login URL
-        window.open("https://web.fatakpay.com/authentication/login?utm_source=556_JQG70&utm_medium=", "_blank")
+        window.open(qrUrl)
     }
 
     return (

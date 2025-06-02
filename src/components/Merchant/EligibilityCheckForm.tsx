@@ -31,7 +31,7 @@ interface PersistedState {
     step: number
     formValues: FormValues
     phoneVerified: boolean
-    eligibilityAmount: number | null
+    eligibilityAmount: number | string | null;
     eligibilityTenure: number | null
     qrUrl: string
     isEligibleCustomer: boolean
@@ -61,7 +61,7 @@ const EligibilityCheckForm = () => {
     const [phoneVerified, setPhoneVerified] = useState(false)
     const [otpError, setOtpError] = useState("")
     const [otpSuccess, setOtpSuccess] = useState(false)
-    const [eligibilityAmount, setEligibilityAmount] = useState<number | null>(null)
+    const [eligibilityAmount, setEligibilityAmount] = useState<number | string | null>(null);
     const [eligibilityTenure, setEligibilityTenure] = useState<number | null>(null)
     const [qrUrl, setQrUrl] = useState<string>("")
     const [eligibilityError, setEligibilityError] = useState("")
@@ -301,11 +301,15 @@ const EligibilityCheckForm = () => {
 
             const customerId = response.data.data._id
             const eligibilityData = response.data.data
+            // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData:", eligibilityData)
             if (response.data.success) {
+                // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData.max_amount:", eligibilityData.max_amount)
 
                 // Set eligibility amount and tenure from API response
-                if (eligibilityData.max_eligibility_amount) {
-                    setEligibilityAmount(eligibilityData.max_eligibility_amount)
+                // console.log("eligibilityData.data.max_amount:", eligibilityData.data?.max_amount);
+
+                if (eligibilityData.data?.max_amount) {
+                    setEligibilityAmount(Number(eligibilityData.data.max_amount)); // convert string to number
                 }
                 if (eligibilityData.tenure) {
                     setEligibilityTenure(eligibilityData.tenure)
@@ -394,12 +398,13 @@ const EligibilityCheckForm = () => {
         <div className="flex flex-col items-center justify-center m-1 mb-8">
             <div className="w-full max-w-md">
                 <div className="bg-white shadow-md rounded p-6">
-                    <h5 className="text-2xl font-bold mb-6 text-center">
-                        {step === 1 && "Enter Mobile Number"}
+                    <h5 className="text-2xl font-bold  text-center">
+                        {step === 1 && ""}
                         {step === 2 && (isEligibleCustomer ? "QR Generated" : "Verify OTP")}
-                        {step === 3 && "Complete Eligibility Check"}
+
                         {step === 4 && "QR Generated"}
                     </h5>
+                    {step === 3}
 
                     {/* Step 1: Phone Number */}
                     {step === 1 && (
@@ -421,6 +426,7 @@ const EligibilityCheckForm = () => {
                             {({ values, setFieldValue }) => (
                                 <Form className="space-y-4">
                                     <div>
+                                        <h4 className="text-2xl font-bold  text-center" >Enter Mobile Number</h4>
                                         <label className="block text-sm font-medium mb-1">Mobile Number</label>
                                         <Field name="mobileNumber">
                                             {({ field, form }: any) => (
@@ -465,16 +471,18 @@ const EligibilityCheckForm = () => {
                     {/* Step 2: OTP Verification or QR Display for Eligible Customers */}
                     {step === 2 && (
                         <div>
-                            <p className="text-center mb-4">
-                                We've sent a verification code to <span className="font-semibold">{formValues.mobileNumber}</span>
-                            </p>
+
 
                             {/* Show OTP form only if customer is not eligible yet */}
                             {!isEligibleCustomer && (
                                 <Formik initialValues={initialOtpValues} onSubmit={handleOtpSubmit}>
                                     {({ values, setFieldValue }) => {
+
                                         return (
                                             <Form className="space-y-6">
+                                                <p className="text-center mb-4">
+                                                    We've sent a verification code to <span className="font-semibold">{formValues.mobileNumber}</span>
+                                                </p>
                                                 <div>
                                                     <label className="block text-sm font-medium mb-2">Enter 6-digit OTP</label>
                                                     <div className="flex justify-between gap-2">
@@ -598,12 +606,12 @@ const EligibilityCheckForm = () => {
                             {/* Show congratulations and QR for eligible customers */}
                             {isEligibleCustomer && (
                                 <div className="space-y-6">
-                                    {otpSuccess && (
+                                    {/* {otpSuccess && (
                                         <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded flex items-center">
                                             <CheckCircle2 className="h-5 w-5 mr-2" />
                                             <span>OTP verified successfully!</span>
                                         </div>
-                                    )}
+                                    )} */}
 
                                     {eligibilityAmount && (
                                         <div className="mt-6 p-6 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg text-center">
@@ -614,10 +622,18 @@ const EligibilityCheckForm = () => {
                                                     <span className="font-semibold text-blue-600">₹{eligibilityAmount.toLocaleString()}</span>
                                                 </p>
                                                 {eligibilityTenure && (
-                                                    <p className="text-gray-700 text-base">
-                                                        Loan Tenure:{" "}
-                                                        <span className="font-semibold text-green-600">30 days</span>
-                                                    </p>
+                                                    <>
+                                                        <p className="text-gray-700 text-base">
+                                                            Loan Tenure:{" "}
+                                                            <span className="font-semibold text-green-600">30 days</span>
+                                                        </p>
+                                                        <p className="text-gray-700 text-base">
+                                                            Interest Rate: 8%
+                                                        </p>
+                                                        <p className="text-gray-700 text-base">
+                                                            Processing Fees: 3%
+                                                        </p>
+                                                    </>
                                                 )}
                                             </div>
                                         </div>
@@ -634,7 +650,7 @@ const EligibilityCheckForm = () => {
                                             <div className="flex flex-col items-center gap-4">
                                                 <div className="p-4 bg-white border-2 border-gray-200 rounded-lg shadow-sm">
                                                     <a
-                                                        href="https://web.fatakpay.com/authentication/login?utm_source=556_JQG70&utm_medium="
+                                                        href={qrUrl}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                     >
@@ -698,7 +714,7 @@ const EligibilityCheckForm = () => {
                                                     value={formValues.mobileNumber}
                                                     readOnly
                                                     disabled
-                                                    className="w-full p-2 border border-gray-300 rounded bg-gray-50 text-gray-700"
+                                                    className="w-full p-1 border border-gray-300 rounded bg-gray-50 text-gray-700"
                                                 />
                                                 <div className="ml-2 text-blue-600">
                                                     <CheckCircle2 className="h-5 w-5" />
@@ -708,12 +724,12 @@ const EligibilityCheckForm = () => {
 
                                         {/* First Name */}
                                         <div>
-                                            <label className="block text-sm font-medium mb-1">First Name(As per PAN)</label>
+                                            <label className="block text-sm font-medium">First Name(As per PAN)</label>
                                             <Field name="first_name">
                                                 {({ field, form }: any) => (
                                                     <input
                                                         {...field}
-                                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                         onChange={(e) => {
                                                             const val = e.target.value.replace(/[^A-Za-z]/g, "")
                                                             form.setFieldValue("first_name", val)
@@ -726,12 +742,12 @@ const EligibilityCheckForm = () => {
 
                                         {/* Last Name */}
                                         <div>
-                                            <label className="block text-sm font-medium mb-1">Last Name(As per PAN)</label>
+                                            <label className="block text-sm font-medium ">Last Name(As per PAN)</label>
                                             <Field name="last_name">
                                                 {({ field, form }: any) => (
                                                     <input
                                                         {...field}
-                                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                         onChange={(e) => {
                                                             const val = e.target.value.replace(/[^A-Za-z]/g, "")
                                                             form.setFieldValue("last_name", val)
@@ -744,13 +760,13 @@ const EligibilityCheckForm = () => {
 
                                         {/* PAN Card */}
                                         <div>
-                                            <label className="block text-sm font-medium mb-1">PAN Card</label>
+                                            <label className="block text-sm font-medium ">PAN Card</label>
                                             <Field name="pan">
                                                 {({ field, form }: any) => (
                                                     <input
                                                         {...field}
                                                         maxLength={10}
-                                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
+                                                        className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
                                                         onChange={(e) => {
                                                             const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "")
                                                             form.setFieldValue("pan", val)
@@ -763,14 +779,14 @@ const EligibilityCheckForm = () => {
 
                                         {/* Pincode */}
                                         <div>
-                                            <label className="block text-sm font-medium mb-1">Pincode</label>
+                                            <label className="block text-sm font-medium ">Pincode</label>
                                             <Field name="pincode">
                                                 {({ field, form }: any) => (
                                                     <input
                                                         {...field}
                                                         maxLength={6}
                                                         inputMode="numeric"
-                                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                         onChange={(e) => {
                                                             const val = e.target.value.replace(/\D/g, "")
                                                             form.setFieldValue("pincode", val)
@@ -783,12 +799,12 @@ const EligibilityCheckForm = () => {
 
                                         {/* Date of Birth */}
                                         <div>
-                                            <label className="block text-sm font-medium mb-1">Date of Birth</label>
+                                            <label className="block text-sm font-medium ">Date of Birth</label>
                                             <div className="flex gap-2">
                                                 <Field
                                                     as="select"
                                                     name="dob_day"
-                                                    className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    className="flex-1 p-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                 >
                                                     <option value="">Day</option>
                                                     {[...Array(31)].map((_, i) => (
@@ -801,7 +817,7 @@ const EligibilityCheckForm = () => {
                                                 <Field
                                                     as="select"
                                                     name="dob_month"
-                                                    className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    className="flex-1 p-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                 >
                                                     <option value="">Month</option>
                                                     {[
@@ -832,7 +848,7 @@ const EligibilityCheckForm = () => {
                                                                 type="text"
                                                                 maxLength={4}
                                                                 placeholder="Year"
-                                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                                 onChange={(e) => {
                                                                     const val = e.target.value.replace(/\D/g, "")
                                                                     form.setFieldValue("dob_year", val)
@@ -851,12 +867,12 @@ const EligibilityCheckForm = () => {
 
                                         {/* Monthly Income */}
                                         <div>
-                                            <label className="block text-sm font-medium mb-1">Monthly Income (₹)</label>
+                                            <label className="block text-sm font-medium ">Monthly Income (₹)</label>
                                             <Field name="income">
                                                 {({ field, form }: any) => (
                                                     <input
                                                         {...field}
-                                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                         inputMode="numeric"
                                                         onChange={(e) => {
                                                             const val = e.target.value.replace(/[^0-9]/g, "")
@@ -901,9 +917,18 @@ const EligibilityCheckForm = () => {
                                                 <span className="font-semibold text-blue-600">₹{eligibilityAmount.toLocaleString()}</span>
                                             </p>
                                             {eligibilityTenure && (
-                                                <p className="text-gray-700 text-base">
-                                                    Loan Tenure: <span className="font-semibold text-green-600">30 days</span>
-                                                </p>
+                                                <>
+                                                    <p className="text-gray-700 text-base">
+                                                        Loan Tenure: <span className="font-semibold text-green-600">30 days</span>
+                                                    </p>
+                                                    <p className="text-gray-700 text-base">
+                                                        Interest Rate: 8%
+                                                    </p>
+                                                    <p className="text-gray-700 text-base">
+                                                        Processing Fees: 3%
+                                                    </p>
+                                                </>
+
                                             )}
                                             {/* <div className="mt-4 p-3 bg-white rounded-lg border border-gray-200">
                                                 <p className="text-sm text-gray-600">
@@ -919,7 +944,7 @@ const EligibilityCheckForm = () => {
                                         <div className="flex flex-col items-center gap-4 mt-4">
                                             <div className="p-4 bg-white border-2 border-gray-200 rounded-lg shadow-sm">
                                                 <a
-                                                    href="https://web.fatakpay.com/authentication/login?utm_source=556_JQG70&utm_medium="
+                                                    href={qrUrl}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                 >
@@ -942,7 +967,7 @@ const EligibilityCheckForm = () => {
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     )
 }
 
