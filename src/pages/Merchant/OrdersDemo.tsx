@@ -346,7 +346,7 @@ const OrdersDemo = () => {
                 endDate.setHours(23, 59, 59, 999)
 
                 const response = await filterByDate(startDate.toISOString(), endDate.toISOString())
-                console.log("🚀 ~ handleDateFilter ~ response?.data:", response?.data)
+                // console.log("🚀 ~ handleDateFilter ~ response?.data:", response?.data)
 
                 setOrders(response?.data || [])
                 setTotalPages(1)
@@ -709,7 +709,6 @@ const OrdersDemo = () => {
                             </table>
                         </div>
 
-                        {/* Fixed Pagination */}
                         {totalPages && (
                             <ul className="mt-6 mb-10 flex justify-center items-center space-x-1 rtl:space-x-reverse">
                                 <li>

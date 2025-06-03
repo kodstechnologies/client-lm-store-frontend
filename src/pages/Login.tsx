@@ -148,7 +148,7 @@ const Login = () => {
 
             const response = await verifyOtp({ mobileNumber: values.contactNo, otp });
 
-            console.log("🚀 ~ handleLogin ~ response:", response)
+            // console.log("🚀 ~ handleLogin ~ response:", response)
             if (response?.success === true) {
                 dispatch(setUser({
                     auth: true,
@@ -161,7 +161,7 @@ const Login = () => {
                 localStorage.setItem('storeEmail', response.storeEmail);
                 localStorage.setItem('storeMerchantName', response.storeMerchantName)
                 const storecode = localStorage.setItem('storeCode', response.StoreCode)
-                console.log("🚀 ~ handleLogin ~ storecode:", storecode)
+                // console.log("🚀 ~ handleLogin ~ storecode:", storecode)
                 const phone = localStorage.setItem('storePhone', response.storePhone)
                 // console.log("🚀 ~ handleLogin ~ phone:", phone)
 
@@ -179,7 +179,7 @@ const Login = () => {
             // if (errorData?.isActive === false) {
             //     showMessage('Store is disabled from login', 'error');
             // } else {
-                showMessage(errorData?.message || 'OTP verification failed', 'error');
+            showMessage(errorData?.message || 'OTP verification failed', 'error');
             // }
             console.error('OTP Verification Error:', error);
         }
@@ -284,9 +284,12 @@ const Login = () => {
                                     </div>
                                 ) : (
                                     <>
-                                        <div>
-                                            <label htmlFor="otp">OTP</label>
-                                            <div className="flex gap-2 justify-evenly">
+                                        <div className="w-full max-w-md mx-auto px-4">
+                                            <label htmlFor="otp" className="block mb-2 font-medium">
+                                                OTP
+                                            </label>
+
+                                            <div className="flex justify-between gap-2">
                                                 {[0, 1, 2, 3, 4, 5].map((index) => {
                                                     const key = `otp${index}` as keyof FormValues;
                                                     return (
@@ -296,25 +299,33 @@ const Login = () => {
                                                             name={`otp${index}`}
                                                             type="password"
                                                             ref={(el: HTMLInputElement | null) => {
-                                                                if (el) {
-                                                                    inputRefs.current[index] = el;
-                                                                }
+                                                                if (el) inputRefs.current[index] = el;
                                                             }}
                                                             value={formik.values[key]}
                                                             onChange={(e) => handleChange(e, index)}
                                                             onKeyDown={(e) => handleKeyDown(e, index)}
                                                             maxLength={1}
-                                                            className="border rounded p-2 text-center"
-                                                            style={{ fontSize: '20px', width: '50px' }}
+                                                            className="border rounded text-center text-lg p-2 w-9 sm:w-10"
                                                         />
                                                     );
                                                 })}
                                             </div>
+
                                             {(formik.touched.otp0 || formik.touched.otp1 || formik.touched.otp2 || formik.touched.otp3 || formik.touched.otp4 || formik.touched.otp5) &&
                                                 (formik.errors.otp0 || formik.errors.otp1 || formik.errors.otp2 || formik.errors.otp3 || formik.errors.otp4 || formik.errors.otp5) && (
-                                                    <div className="text-danger">{(formik.errors.otp0 || formik.errors.otp1 || formik.errors.otp2 || formik.errors.otp3 || formik.errors.otp4 || formik.errors.otp5) as string}</div>
+                                                    <div className="text-danger mt-2 text-sm">
+                                                        {
+                                                            (formik.errors.otp0 ||
+                                                                formik.errors.otp1 ||
+                                                                formik.errors.otp2 ||
+                                                                formik.errors.otp3 ||
+                                                                formik.errors.otp4 ||
+                                                                formik.errors.otp5) as string
+                                                        }
+                                                    </div>
                                                 )}
                                         </div>
+
 
                                         <button type="submit" className="btn btn-gradient !mt-6 w-full border-0 uppercase shadow-[0_10px_20px_-10px_rgba(67,97,238,0.44)]">
                                             Verify OTP and Login

@@ -239,7 +239,7 @@ const EligibilityCheckForm = () => {
                 otp: otpString,
             })
 
-            console.log("🚀 ~ handleOtpSubmit ~ res:", res)
+            // console.log("🚀 ~ handleOtpSubmit ~ res:", res)
 
             if (res.success) {
                 setOtpSuccess(true)
@@ -367,7 +367,7 @@ const EligibilityCheckForm = () => {
         // }
         try {
             const response = await eligibleCheckApi(finalValues);
-            console.log("Eligibility check response:", response.data);
+            // console.log("Eligibility check response:", response.data);
 
             const customerId = response.data.data._id;
             const eligibilityData = response.data.data;
@@ -385,7 +385,7 @@ const EligibilityCheckForm = () => {
                 }
 
                 //  Handle non-eligible customers with specific message
-                console.log("🚀 ~ handleFinalSubmit ~ eligibilityData:", eligibilityData)
+                // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData:", eligibilityData)
                 if (eligibilityData.eligibility_status === false) {
                     if (eligibilityData.message === "User already exists in the system.") {
                         // Proceed without setting error
@@ -417,7 +417,7 @@ const EligibilityCheckForm = () => {
             console.error("Eligibility API error:", error);
 
             const errorMessage = error?.response?.data?.message || error?.message;
-            console.log("🚀 ~ handleFinalSubmit ~ errorMessage:", errorMessage);
+            // console.log("🚀 ~ handleFinalSubmit ~ errorMessage:", errorMessage);
 
             if (errorMessage?.includes("PAN already exists") || errorMessage?.includes("PAN already in use")) {
                 setEligibilityError("This PAN card is already registered with another account.");

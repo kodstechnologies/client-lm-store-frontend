@@ -191,7 +191,7 @@ const AddProductDetails = () => {
 
         showMessage();
 
-        console.log('Submitted Data:', formData);
+        // console.log('Submitted Data:', formData);
 
         setTimeout(() => {
             setShowQR(true);
