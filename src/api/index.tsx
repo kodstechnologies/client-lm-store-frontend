@@ -187,6 +187,22 @@ export const searchOrderByPhoneNumber = async (phoneNumber: any) => {
         throw error.response?.data?.message || 'Something went wrong';
     }
 };
+
+export const filterByDate = async (startDate: string, endDate: string) => {
+    try {
+        const token = localStorage.getItem("authToken");
+        const res = await api.get(`/get-orders-by-date?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        })
+        return res;
+    } catch (error:any) {
+        console.error("Error filtering orders by date:", error.message);
+        return null;
+    }
+}
 export const getStatusCounts = async () => {
     try {
         const token = localStorage.getItem("authToken");

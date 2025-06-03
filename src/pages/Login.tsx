@@ -43,7 +43,7 @@ const Login = () => {
     const inputRefs = useRef<HTMLInputElement[]>([]);
     const handleSendOtp = async () => {
         try {
-            // Optional frontend validation before sending
+            //  Basic mobile number validation
             if (!formik.values.contactNo || formik.values.contactNo.length !== 10) {
                 showMessage('Please enter a valid 10-digit mobile number', 'error');
                 return;
@@ -51,31 +51,27 @@ const Login = () => {
 
             showMessage('Sending OTP...');
 
-            // Make API request
+            //  Call the API with correct format
             const response = await mobileVerify({ mobileNumber: formik.values.contactNo });
 
-            // console.log("🚀 ~ handleSendOtp ~ response:", response)
-            // Check if the response indicates success
             if (response?.success) {
                 showMessage('OTP sent successfully');
                 setOtpSent(true);
                 setTimer(60);
                 setCountdown(30);
-                hidefunction(); // Only transition to OTP screen on success
+                hidefunction(); // Navigate to OTP screen
             } else {
-                // Handle case where response doesn't have success flag
-                showMessage(response?.data?.message || 'Failed to send OTP', 'error');
+                showMessage(response?.message || 'Failed to send OTP', 'error');
             }
         } catch (error: any) {
             console.error('Error sending OTP:', error);
 
             if (error.response) {
-                // Handle specific backend error responses
                 const { status, data } = error.response;
 
                 switch (status) {
                     case 404:
-                        showMessage('Mobile number not registered as a Store or Merchant', 'error');
+                        showMessage('Mobile number not registered as a Store', 'error'); // ✅ changed from Store or Merchant
                         break;
                     case 400:
                         showMessage(data.message || 'Invalid mobile number format', 'error');
@@ -87,18 +83,16 @@ const Login = () => {
                         showMessage(data.message || 'Failed to send OTP', 'error');
                 }
             } else if (error.request) {
-                // Network error
                 showMessage('Network error. Please check your connection.', 'error');
             } else {
-                // Other errors
                 showMessage('Something went wrong. Please try again.', 'error');
             }
 
-            // Reset states on error
             setOtpSent(false);
             setCountdown(0);
             setTimer(0);
         }
+
     };
 
     useEffect(() => {
@@ -180,13 +174,13 @@ const Login = () => {
 
         } catch (error: any) {
             const errorData = error?.response?.data;
-            console.log("🚀 ~ handleLogin ~ errorData:", errorData)
+            // console.log("🚀 ~ handleLogin ~ errorData:", errorData)
 
-            if (errorData?.isActive === false) {
-                showMessage('Store is disabled from login', 'error');
-            } else {
+            // if (errorData?.isActive === false) {
+            //     showMessage('Store is disabled from login', 'error');
+            // } else {
                 showMessage(errorData?.message || 'OTP verification failed', 'error');
-            }
+            // }
             console.error('OTP Verification Error:', error);
         }
     };

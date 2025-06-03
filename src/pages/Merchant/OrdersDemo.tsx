@@ -1,17 +1,16 @@
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { useDispatch } from "react-redux"
 import { setPageTitle } from "../../store/themeConfigSlice"
 import { Link } from "react-router-dom"
-import { IoIosArrowDropright, IoIosArrowDropdown } from "react-icons/io"
+import { IoIosArrowDropright, IoIosArrowDropdown, IoMdFunnel } from "react-icons/io"
 import { IoMdArrowDropdownCircle } from "react-icons/io"
 import { IoMdArrowDroprightCircle } from "react-icons/io"
 import { Loader2, CheckCircle2, QrCode } from "lucide-react"
-// const backendApiBaseUrl = import.meta.env.VITE_BACKEND_API_URL;
-// const backendHostedQRUrl=import.meta.env.VITE_BACKEND_HOSTED_QRURL
 import QRCode from "react-qr-code"
-
-// Import your components
+import type Flatpickr from "react-flatpickr"
+import FlatpickrReact from "react-flatpickr"
+import "flatpickr/dist/themes/material_blue.css"
 import ProductDetailsStatic from "../../components/order_status/ProductDetailsStatic"
 import EmiDetails from "../../components/order_status/EmiDetails"
 import InvoiceDetails from "../../components/order_status/InvoiceDetails"
@@ -19,7 +18,10 @@ import RemarkDetails from "../../components/order_status/RemarkDetails"
 import UTRDetails from "../../components/order_status/UTRDetails"
 import RejectedRemark from "../../components/order_status/RejectedRemark"
 import CompletedStatusEmiDetails from "../../components/order_status/CompletedStatusEmiDetails"
-import { fetchAllOrders, updateOrderById, searchOrderByPhoneNumber, fetchOrdersByStore } from "../../api"
+import { updateOrderById, searchOrderByPhoneNumber, fetchOrdersByStore, filterByDate } from "../../api"
+import { MdArrowBackIos } from "react-icons/md";
+import { MdOutlineArrowForwardIos } from "react-icons/md";
+
 
 interface AccordionContentProps {
     status: string
@@ -31,59 +33,58 @@ interface AccordionContentProps {
 
 const AccordionContent = ({ status, orderId, qrUrl, onCompleteOrder, isCompletingOrder }: AccordionContentProps) => {
     const [isExpanded, setIsExpanded] = useState(false)
+
     const toggleExpand = () => setIsExpanded(!isExpanded)
 
     const handleQRClick = () => {
-        // On click, redirect to FatakPay login URL
         window.open(qrUrl)
     }
 
     return (
-        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+        <div className="mt-4 bg-gray-50 rounded-lg">
             {status === "QR Generated" && (
-                <div className="space-y-4">
+                <div className="space-y-2">
                     {qrUrl ? (
-                        <div className="flex flex-col items-center gap-20">
-                            {/* QR Code Section */}
-                            <div className="flex flex-col items-center space-y-3 p-4 bg-white rounded-lg border border-gray-200">
-                                <h4 className="text-lg font-semibold text-gray-800">Scan QR Code</h4>
-                                <div
-                                    className="cursor-pointer hover:opacity-80 transition-opacity"
-                                    onClick={handleQRClick}
-                                    title="Click to open QR"
-                                >
-                                    <QRCode value={qrUrl} size={150} />
+                        <div className="bg-white rounded-lg  border-gray-200 p-2">
+                            <div className="flex flex-col-2 gap-4 items-center space-y-2">
+                                {/* QR Code Section - centered with minimal spacing */}
+                                <div className="flex flex-col items-center space-y-1">
+                                    <h4 className="text-sm font-semibold text-gray-800">Scan QR</h4>
+                                    <div
+                                        className="cursor-pointer hover:opacity-80 transition-opacity"
+                                        onClick={handleQRClick}
+                                        title="Click to open QR"
+                                    >
+                                        <QRCode value={qrUrl} size={120} />
+                                    </div>
+                                    <p className="text-xs text-gray-500 text-center">Tap to open</p>
                                 </div>
-                                <div className="text-center space-y-1">
-                                    <p className="text-sm text-gray-600">Scan with your phone camera</p>
-                                    <p className="text-xs text-gray-500">or click QR code to open in browser</p>
+
+                                {/* Buttons Section - below QR code */}
+                                <div className="flex flex-col space-y-2 w-40">
+                                    <button
+                                        onClick={() => orderId && onCompleteOrder?.(orderId)}
+                                        disabled={isCompletingOrder}
+                                        className="w-full bg-green-600 text-white font-semibold py-2 px-3 rounded-lg shadow-md hover:bg-green-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 text-xs"
+                                    >
+                                        {isCompletingOrder ? (
+                                            <>
+                                                <Loader2 className="h-3 w-3 animate-spin" />
+                                                Completing...
+                                            </>
+                                        ) : (
+                                            "Complete Order"
+                                        )}
+                                    </button>
+
+                                    <button
+                                        onClick={handleQRClick}
+                                        className="w-full bg-blue-600 text-white font-semibold py-2 px-3 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 flex items-center justify-center gap-1 text-xs"
+                                    >
+                                        <QrCode className="h-3 w-3" />
+                                        Open QR Link
+                                    </button>
                                 </div>
-                            </div>
-
-                            {/* Buttons Section - centered */}
-                            <div className="flex flex-col items-center justify-center space-y-3 w-full max-w-xs">
-                                <button
-                                    onClick={() => orderId && onCompleteOrder?.(orderId)}
-                                    disabled={isCompletingOrder}
-                                    className="w-full bg-green-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-green-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                >
-                                    {isCompletingOrder ? (
-                                        <>
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                            Completing...
-                                        </>
-                                    ) : (
-                                        "Complete Order"
-                                    )}
-                                </button>
-
-                                <button
-                                    onClick={handleQRClick}
-                                    className="w-full bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 flex items-center justify-center gap-2"
-                                >
-                                    <QrCode className="h-4 w-4" />
-                                    Open QR Link
-                                </button>
                             </div>
                         </div>
                     ) : (
@@ -94,14 +95,12 @@ const AccordionContent = ({ status, orderId, qrUrl, onCompleteOrder, isCompletin
                 </div>
             )}
 
-
             {status === "Completed" && (
                 <div className="space-y-4">
                     <div className="flex items-center gap-2 text-green-600 font-semibold mb-2">
                         <CheckCircle2 className="h-5 w-5" />
                         <span>Order Completed Successfully!</span>
                     </div>
-                    {/* <InvoiceDetails /> */}
                     <button className="flex items-center gap-2 text-blue-500 font-semibold" onClick={toggleExpand}>
                         {isExpanded ? (
                             <>
@@ -111,12 +110,7 @@ const AccordionContent = ({ status, orderId, qrUrl, onCompleteOrder, isCompletin
                                 </span>
                             </>
                         ) : (
-                            <>
-                                {/* <IoMdArrowDroprightCircle className="text-2xl" />
-                                <span className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition duration-300">
-                                    View more
-                                </span> */}
-                            </>
+                            <>{/* View more button hidden for completed orders */}</>
                         )}
                     </button>
                     {isExpanded && (
@@ -257,18 +251,52 @@ const OrdersDemo = () => {
     const [search, setSearch] = useState<string>("")
     const [searchLoading, setSearchLoading] = useState<boolean>(false)
     const [isSearchMode, setIsSearchMode] = useState<boolean>(false)
+    const [dateRange, setDateRange] = useState<Date[] | string[]>([])
+    const flatpickrRef = useRef<Flatpickr | null>(null)
+    const [isDateFilterMode, setIsDateFilterMode] = useState<boolean>(false)
+    const [dateFilterLoading, setDateFilterLoading] = useState<boolean>(false)
+
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState<number>(1)
+    const [totalPages, setTotalPages] = useState<number>(1)
+    const [totalOrders, setTotalOrders] = useState<number>(0)
+    const ordersPerPage = 100
 
     useEffect(() => {
         dispatch(setPageTitle("Orders"))
     }, [dispatch])
 
-    const loadAllOrders = async () => {
+    // Load orders with pagination (100 orders per page from past 30 days)
+    const loadOrdersWithPagination = async (page = 1) => {
         setLoading(true)
         setError(null)
         try {
+            // Calculate date range for past 30 days
+            const endDate = new Date()
+            const startDate = new Date()
+            startDate.setDate(startDate.getDate() - 30)
+
             const response = await fetchOrdersByStore()
-            // console.log("🚀 ~ loadOrders ~ response:", response)
-            setOrders(response.data)
+
+            // Filter orders from past 30 days
+            const filteredOrders = response.data
+                .filter((order: any) => {
+                    const orderDate = new Date(order.createdAt)
+                    return orderDate >= startDate && orderDate <= endDate
+                })
+                .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+            // Calculate pagination
+            const totalFilteredOrders = filteredOrders.length
+            const calculatedTotalPages = Math.ceil(totalFilteredOrders / ordersPerPage)
+            const startIndex = (page - 1) * ordersPerPage
+            const endIndex = startIndex + ordersPerPage
+            const paginatedOrders = filteredOrders.slice(startIndex, endIndex)
+
+            setOrders(paginatedOrders)
+            setTotalPages(calculatedTotalPages)
+            setTotalOrders(totalFilteredOrders)
+            setCurrentPage(page)
         } catch (err: any) {
             setError("Failed to load orders.")
             console.error(err)
@@ -278,15 +306,16 @@ const OrdersDemo = () => {
     }
 
     const handleSearch = async (phoneNumber: string) => {
-        // console.log("🚀 ~ handleSearch ~ phoneNumber:", phoneNumber)
         setSearchLoading(true)
         setError(null)
         setIsSearchMode(true)
 
         try {
             const response = await searchOrderByPhoneNumber(phoneNumber)
-            // console.log("🚀 ~ handleSearch ~ response:", response)
             setOrders(response || [])
+            setTotalPages(1)
+            setTotalOrders(response?.length || 0)
+            setCurrentPage(1)
         } catch (err: any) {
             console.error("Search error:", err)
             setError(typeof err === "string" ? err : "Failed to search orders.")
@@ -300,11 +329,52 @@ const OrdersDemo = () => {
         setSearch("")
         setIsSearchMode(false)
         setError(null)
-        loadAllOrders()
+        loadOrdersWithPagination(1)
+    }
+
+    const handleDateFilter = async (selectedDates: Date[]) => {
+        if (selectedDates.length === 2) {
+            setDateFilterLoading(true)
+            setError(null)
+            setIsDateFilterMode(true)
+
+            try {
+                const startDate = new Date(selectedDates[0])
+                startDate.setHours(0, 0, 0, 0)
+
+                const endDate = new Date(selectedDates[1])
+                endDate.setHours(23, 59, 59, 999)
+
+                const response = await filterByDate(startDate.toISOString(), endDate.toISOString())
+                console.log("🚀 ~ handleDateFilter ~ response?.data:", response?.data)
+
+                setOrders(response?.data || [])
+                setTotalPages(1)
+                setTotalOrders(response?.data?.length || 0)
+                setCurrentPage(1)
+            } catch (err: any) {
+                console.error("Date filter error:", err)
+                setError("Failed to filter orders by date.")
+                setOrders([])
+            } finally {
+                setDateFilterLoading(false)
+            }
+        }
+    }
+
+
+    const handleClearDateFilter = () => {
+        setDateRange([])
+        setIsDateFilterMode(false)
+        setError(null)
+        if (flatpickrRef.current) {
+            flatpickrRef.current.flatpickr.clear()
+        }
+        loadOrdersWithPagination(1)
     }
 
     useEffect(() => {
-        loadAllOrders()
+        loadOrdersWithPagination(1)
     }, [])
 
     // Debounced search effect
@@ -312,15 +382,14 @@ const OrdersDemo = () => {
         const timeoutId = setTimeout(() => {
             if (search.trim()) {
                 handleSearch(search.trim())
-            } else {
-                // If search is empty, load all orders
+            } else if (!isDateFilterMode) {
                 setIsSearchMode(false)
-                loadAllOrders()
+                loadOrdersWithPagination(1)
             }
-        }, 500) // 500ms debounce
+        }, 500)
 
         return () => clearTimeout(timeoutId)
-    }, [search])
+    }, [search, isDateFilterMode])
 
     // Clear success message after 3 seconds
     useEffect(() => {
@@ -333,22 +402,16 @@ const OrdersDemo = () => {
     }, [successMessage])
 
     const toggleRow = (rowId: string) => {
-        // console.log("Toggling row:", rowId, "Current expanded:", expandedRow)
         setExpandedRow(expandedRow === rowId ? null : rowId)
     }
 
     const handleCompleteOrder = async (orderId: string) => {
         try {
-            // Add to completing orders set
             setCompletingOrders((prev) => new Set(prev).add(orderId))
 
-            // console.log("Completing order:", orderId)
-
-            // Call API to update order status
             const response = await updateOrderById(orderId)
 
             if (response.data.success) {
-                // Update the local state to reflect the status change
                 setOrders((prevOrders) =>
                     prevOrders.map((order) => {
                         const currentOrderId = order.id || order.orderId
@@ -359,24 +422,16 @@ const OrdersDemo = () => {
                     }),
                 )
 
-                // Show success message
                 setSuccessMessage(`Order ${orderId} completed successfully!`)
-
-                // console.log("Order completed successfully:", orderId)
             } else {
                 throw new Error("Failed to complete order")
             }
         } catch (error: any) {
             console.error("Error completing order:", error)
-
-            // Show error message
             const errorMessage = error?.response?.data?.message || error?.message || "Failed to complete order"
             setError(errorMessage)
-
-            // Clear error after 5 seconds
             setTimeout(() => setError(null), 5000)
         } finally {
-            // Remove from completing orders set
             setCompletingOrders((prev) => {
                 const newSet = new Set(prev)
                 newSet.delete(orderId)
@@ -406,11 +461,49 @@ const OrdersDemo = () => {
         }
     }
 
-    const filteredOrders = orders
+    // Handle page changes
+    const handlePageChange = (page: number) => {
+        if (page >= 1 && page <= totalPages && page !== currentPage) {
+            setExpandedRow(null) // Close any expanded rows
+            if (!isSearchMode && !isDateFilterMode) {
+                loadOrdersWithPagination(page)
+            } else {
+                setCurrentPage(page)
+            }
+        }
+    }
+
+    // Generate page numbers for pagination
+    const getVisiblePages = () => {
+        const pages = []
+        const maxVisiblePages = 5
+
+        if (totalPages <= maxVisiblePages) {
+            for (let i = 1; i <= totalPages; i++) {
+                pages.push(i)
+            }
+        } else {
+            if (currentPage <= 3) {
+                for (let i = 1; i <= maxVisiblePages; i++) {
+                    pages.push(i)
+                }
+            } else if (currentPage >= totalPages - 2) {
+                for (let i = totalPages - maxVisiblePages + 1; i <= totalPages; i++) {
+                    pages.push(i)
+                }
+            } else {
+                for (let i = currentPage - 2; i <= currentPage + 2; i++) {
+                    pages.push(i)
+                }
+            }
+        }
+
+        return pages
+    }
 
     return (
         <div className="mb-8 px-4 sm:px-0">
-            <ul className="flex space-x-2 rtl:space-x-reverse mb-6">
+            {/* <ul className="flex space-x-2 rtl:space-x-reverse mb-6">
                 <li>
                     <Link to="/merchant" className="text-primary hover:underline">
                         Dashboard
@@ -419,7 +512,7 @@ const OrdersDemo = () => {
                 <li className="before:content-['/'] ltr:before:mr-2 rtl:before:ml-2">
                     <span>Orders</span>
                 </li>
-            </ul>
+            </ul> */}
 
             {/* Success Message */}
             {successMessage && (
@@ -429,14 +522,13 @@ const OrdersDemo = () => {
                 </div>
             )}
 
-
-
             {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>}
 
-            {/* Search Section */}
+            {/* Search and Filter Section */}
             <div className="mb-4">
-                <div className="flex gap-2">
-                    <div className="relative w-[600px]">
+                <div className="flex gap-2 flex-wrap">
+                    {/* Search Input */}
+                    <div className="relative w-full sm:w-[400px]">
                         <input
                             type="text"
                             className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -444,7 +536,6 @@ const OrdersDemo = () => {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
-                        {/* Search Icon */}
                         <svg
                             className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-500 w-4 h-4 pointer-events-none"
                             fill="none"
@@ -459,14 +550,12 @@ const OrdersDemo = () => {
                             />
                         </svg>
 
-                        {/* Loading Spinner */}
                         {searchLoading && (
                             <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
                                 <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
                             </div>
                         )}
 
-                        {/* Clear Button */}
                         {search && !searchLoading && (
                             <button
                                 onClick={handleClearSearch}
@@ -476,15 +565,69 @@ const OrdersDemo = () => {
                             </button>
                         )}
                     </div>
+
+                    {/* Date Filter */}
+                    <div className="relative w-full sm:w-[300px]">
+                        <div className="relative">
+                            <IoMdFunnel className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-500 w-4 h-4 pointer-events-none z-10" />
+                            <FlatpickrReact
+                                ref={flatpickrRef}
+                                value={dateRange}
+                                onChange={(selectedDates) => {
+                                    setDateRange(selectedDates)
+                                    handleDateFilter(selectedDates)
+                                }}
+                                options={{
+                                    mode: "range",
+                                    dateFormat: "d F Y",
+                                }}
+                                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Filter by Date Range"
+                            />
+
+                            {dateFilterLoading && (
+                                <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
+                                    <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                                </div>
+                            )}
+
+                            {dateRange.length > 0 && !dateFilterLoading && (
+                                <button
+                                    onClick={handleClearDateFilter}
+                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-500 text-white text-sm px-2 py-1 rounded hover:bg-gray-600"
+                                >
+                                    Clear
+                                </button>
+                            )}
+                        </div>
+                    </div>
                 </div>
 
-                {isSearchMode && (
-                    <div className="mt-2 text-sm text-gray-600">
-                        {searchLoading
-                            ? "Searching..."
-                            : `Found ${orders.length} order${orders.length !== 1 ? "s" : ""} for "${search}"`}
-                    </div>
-                )}
+                {/* Status Messages */}
+                <div className="mt-2 space-y-1">
+                    {isSearchMode && (
+                        <div className="text-sm text-gray-600">
+                            {searchLoading
+                                ? "Searching..."
+                                : `Found ${orders.length} order${orders.length !== 1 ? "s" : ""} for "${search}"`}
+                        </div>
+                    )}
+
+                    {isDateFilterMode && (
+                        <div className="text-sm text-gray-600">
+                            {dateFilterLoading
+                                ? "Filtering by date..."
+                                : `Found ${orders.length} order${orders.length !== 1 ? "s" : ""} in selected date range`}
+                        </div>
+                    )}
+
+                    {!isSearchMode && !isDateFilterMode && (
+                        <div className="text-sm text-gray-600">
+                            Showing {orders.length} orders from page {currentPage} of {totalPages} (Total: {totalOrders} orders from
+                            past 30 days)
+                        </div>
+                    )}
+                </div>
             </div>
 
             {loading && (
@@ -494,7 +637,6 @@ const OrdersDemo = () => {
                 </div>
             )}
 
-
             {!loading && !error && (
                 <>
                     {/* Responsive Table View for All Devices */}
@@ -502,6 +644,9 @@ const OrdersDemo = () => {
                         <table className="w-full border-collapse border border-gray-200 bg-white rounded-lg shadow">
                             <thead className="bg-gray-50">
                                 <tr>
+                                    <th className="border border-gray-300 p-2 sm:p-3 text-center font-semibold text-xs sm:text-sm">
+                                        Details
+                                    </th>
                                     <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">ID</th>
                                     <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">
                                         Status
@@ -513,9 +658,6 @@ const OrdersDemo = () => {
                                     <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">
                                         Phone
                                     </th>
-                                    <th className="border border-gray-300 p-2 sm:p-3 text-center font-semibold text-xs sm:text-sm">
-                                        Details
-                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -526,15 +668,23 @@ const OrdersDemo = () => {
                                         </td>
                                     </tr>
                                 )}
-                                {filteredOrders.map((row) => {
+                                {orders.map((row) => {
                                     const rowId = row.id || row.orderId
                                     const isCompleting = completingOrders.has(rowId)
 
                                     return (
                                         <React.Fragment key={rowId}>
                                             <tr className="border border-gray-300 hover:bg-gray-50">
+                                                <td className="border border-gray-300 p-2 sm:p-3 text-center">
+                                                    <button
+                                                        onClick={() => toggleRow(rowId)}
+                                                        className="text-xl sm:text-2xl focus:outline-none hover:text-primary transition-colors"
+                                                    >
+                                                        {expandedRow === rowId ? <IoIosArrowDropdown /> : <IoIosArrowDropright />}
+                                                    </button>
+                                                </td>
                                                 <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">
-                                                    {row.orderId || row.id}
+                                                    <span>{row.orderId || row.id}</span>
                                                 </td>
                                                 <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">
                                                     {getStatusButton(row.status)}
@@ -544,14 +694,6 @@ const OrdersDemo = () => {
                                                 </td>
                                                 <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">{row.name}</td>
                                                 <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">{row.number}</td>
-                                                <td className="border border-gray-300 p-2 sm:p-3 text-center">
-                                                    <button
-                                                        onClick={() => toggleRow(rowId)}
-                                                        className="text-xl sm:text-2xl focus:outline-none hover:text-primary transition-colors"
-                                                    >
-                                                        {expandedRow === rowId ? <IoIosArrowDropdown /> : <IoIosArrowDropright />}
-                                                    </button>
-                                                </td>
                                             </tr>
                                             {expandedRow === rowId && (
                                                 <tr>
@@ -570,7 +712,77 @@ const OrdersDemo = () => {
                                     )
                                 })}
                             </tbody>
+                            {totalPages  && (
+                                <ul className="fixed bottom-20 right-14 z-10 inline-flex items-center space-x-1 rtl:space-x-reverse justify-center  bg-white">
+                                    {/* First Button */}
+                                    {/* <li>
+                                        <button
+                                            type="button"
+                                            onClick={() => handlePageChange(1)}
+                                            disabled={currentPage === 1}
+                                            className="flex justify-center font-semibold p-2 rounded-full transition bg-white-light text-dark hover:text-white hover:bg-primary dark:text-white-light dark:bg-[#191e3a] dark:hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            First
+                                        </button>
+                                    </li> */}
+
+                                    {/* Previous Button */}
+                                    <li>
+                                        <button
+                                            type="button"
+                                            onClick={() => handlePageChange(currentPage - 1)}
+                                            disabled={currentPage === 1}
+                                            className="flex justify-center font-semibold p-2 rounded-full transition bg-white-light text-dark hover:text-white hover:bg-primary dark:text-white-light dark:bg-[#191e3a] dark:hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <MdArrowBackIos />
+                                        </button>
+                                    </li>
+
+                                    {/* Page Numbers */}
+                                    {getVisiblePages().map((pageNum) => (
+                                        <li key={pageNum}>
+                                            <button
+                                                type="button"
+                                                onClick={() => handlePageChange(pageNum)}
+                                                className={`flex justify-center font-semibold px-3.5 py-2 rounded-full transition ${currentPage === pageNum
+                                                    ? "bg-primary text-white dark:text-white-light dark:bg-primary"
+                                                    : "bg-white-light text-dark hover:text-white hover:bg-primary dark:text-white-light dark:bg-[#191e3a] dark:hover:bg-primary"
+                                                    }`}
+                                            >
+                                                {pageNum}
+                                            </button>
+                                        </li>
+                                    ))}
+
+                                    {/* Next Button */}
+                                    <li>
+                                        <button
+                                            type="button"
+                                            onClick={() => handlePageChange(currentPage + 1)}
+                                            disabled={currentPage === totalPages}
+                                            className="flex justify-center font-semibold p-2 rounded-full transition bg-white-light text-dark hover:text-white hover:bg-primary dark:text-white-light dark:bg-[#191e3a] dark:hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <MdOutlineArrowForwardIos />
+                                        </button>
+                                    </li>
+
+                                    {/* Last Button */}
+                                    {/* <li>
+                                        <button
+                                            type="button"
+                                            onClick={() => handlePageChange(totalPages)}
+                                            disabled={currentPage === totalPages}
+                                            className="flex justify-center font-semibold p-2 rounded-full transition bg-white-light text-dark hover:text-white hover:bg-primary dark:text-white-light dark:bg-[#191e3a] dark:hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            Last
+                                        </button>
+                                    </li> */}
+                                </ul>
+                            )}
                         </table>
+
+                        {/* Functional Pagination Component */}
+
                     </div>
                 </>
             )}

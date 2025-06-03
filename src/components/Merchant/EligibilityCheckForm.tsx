@@ -31,7 +31,8 @@ interface PersistedState {
     step: number
     formValues: FormValues
     phoneVerified: boolean
-    eligibilityAmount: number | string | null;
+    eligibilityAmount: number | string | null
+    maxAmount: number | string | null
     eligibilityTenure: number | null
     qrUrl: string
     isEligibleCustomer: boolean
@@ -61,7 +62,8 @@ const EligibilityCheckForm = () => {
     const [phoneVerified, setPhoneVerified] = useState(false)
     const [otpError, setOtpError] = useState("")
     const [otpSuccess, setOtpSuccess] = useState(false)
-    const [eligibilityAmount, setEligibilityAmount] = useState<number | string | null>(null);
+    const [eligibilityAmount, setEligibilityAmount] = useState<number | string | null>(null)
+    const [maxAmount, setMaxAmount] = useState<number | string | null>(null)
     const [eligibilityTenure, setEligibilityTenure] = useState<number | null>(null)
     const [qrUrl, setQrUrl] = useState<string>("")
     const [eligibilityError, setEligibilityError] = useState("")
@@ -77,9 +79,8 @@ const EligibilityCheckForm = () => {
     const [isGeneratingQR, setIsGeneratingQR] = useState(false)
 
     const inputRefs = useRef<Array<React.RefObject<HTMLInputElement>>>(
-        Array.from({ length: 6 }, () => React.createRef<HTMLInputElement>())
-    ).current;
-
+        Array.from({ length: 6 }, () => React.createRef<HTMLInputElement>()),
+    ).current
 
     // Load persisted state on component mount
     useEffect(() => {
@@ -91,6 +92,7 @@ const EligibilityCheckForm = () => {
                 setFormValues(parsedState.formValues)
                 setPhoneVerified(parsedState.phoneVerified)
                 setEligibilityAmount(parsedState.eligibilityAmount)
+                setMaxAmount(parsedState.maxAmount)
                 setEligibilityTenure(parsedState.eligibilityTenure)
                 setQrUrl(parsedState.qrUrl)
                 setIsEligibleCustomer(parsedState.isEligibleCustomer || false)
@@ -114,12 +116,13 @@ const EligibilityCheckForm = () => {
             formValues,
             phoneVerified,
             eligibilityAmount,
+            maxAmount,
             eligibilityTenure,
             qrUrl,
             isEligibleCustomer,
         }
         localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave))
-    }, [step, formValues, phoneVerified, eligibilityAmount, eligibilityTenure, qrUrl, isEligibleCustomer])
+    }, [step, formValues, phoneVerified, eligibilityAmount, maxAmount, eligibilityTenure, qrUrl, isEligibleCustomer])
 
     // Clear persisted state and reset all states
     const clearPersistedState = () => {
@@ -129,6 +132,7 @@ const EligibilityCheckForm = () => {
         setPhoneVerified(false)
         setQrUrl("")
         setEligibilityAmount(null)
+        setMaxAmount(null)
         setEligibilityTenure(null)
         setOtpError("")
         setOtpSuccess(false)
@@ -142,6 +146,7 @@ const EligibilityCheckForm = () => {
     const handleNewApplication = () => {
         clearPersistedState()
         setEligibilityAmount(null)
+        setMaxAmount(null)
         setOtpSuccess(false)
         setOtpError("")
     }
@@ -195,6 +200,7 @@ const EligibilityCheckForm = () => {
         setOtpError("")
         setOtpSuccess(false)
         setEligibilityAmount(null)
+        setMaxAmount(null)
         setIsOtpVerified(false)
         setIsCustomerNotEligible(false)
         setIsEligibleCustomer(false)
@@ -233,7 +239,7 @@ const EligibilityCheckForm = () => {
                 otp: otpString,
             })
 
-            // console.log("🚀 ~ handleOtpSubmit ~ res:", res)
+            console.log("🚀 ~ handleOtpSubmit ~ res:", res)
 
             if (res.success) {
                 setOtpSuccess(true)
@@ -258,6 +264,9 @@ const EligibilityCheckForm = () => {
                         setIsGeneratingQR(false)
                     }
                 } else {
+                    // if(res.message==="Customer eligible with (User already exists in the system.)"){
+
+                    // }
                     setTimeout(() => {
                         setStep(3)
                     }, 1500)
@@ -283,8 +292,6 @@ const EligibilityCheckForm = () => {
     }
 
     const handleFinalSubmit = async (values: FormValues) => {
-
-
         setIsCheckingEligibility(true)
 
         const finalValues = {
@@ -295,66 +302,134 @@ const EligibilityCheckForm = () => {
         // console.log("Final form submission:", finalValues)
         setEligibilityError("")
 
+        // try {
+        //     const response = await eligibleCheckApi(finalValues)
+        //     console.log("Eligibility check response:", response.data)
+
+        //     const customerId = response.data.data._id
+        //     const eligibilityData = response.data.data
+        //     // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData:", eligibilityData)
+        //     if (response.data.success) {
+        //         // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData.max_amount:", eligibilityData.max_amount)
+
+        //         // Set eligibility amount and tenure from API response
+        //         // console.log("eligibilityData.data.max_amount:", eligibilityData.data?.max_amount);
+
+        //         if (eligibilityData.data?.max_amount) {
+        //             setMaxAmount(Number(eligibilityData.data.max_amount)) // convert string to number
+        //         }
+        //         // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData.data?.max_amount:", eligibilityData?.max_amount)
+        //         if (eligibilityData.max_eligibility_amount) {
+        //             setEligibilityAmount(Number(eligibilityData.max_eligibility_amount))
+        //         }
+        //         if (eligibilityData.tenure) {
+        //             setEligibilityTenure(eligibilityData.tenure)
+        //         }
+        //         // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData.eligibility_status:", eligibilityData.eligibility_status)
+        //         if (eligibilityData.eligibility_status === false) {
+        //             setEligibilityError(eligibilityData.message || "Not eligible.")
+        //         }
+        //         // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData.message:", eligibilityData.message)
+        //         // console.log("🚀 ~ handleFinalSubmit ~ customerId:", customerId)
+        //         const order = await createOrderForEligible({ customerId })
+        //         if (order?.data?.order?.qrUrl) {
+        //             // console.log("QR URL:", order.data.order.qrUrl)
+        //             setQrUrl(order.data.order.qrUrl)
+        //         }
+        //         setStep(4)
+        //         // console.log("🚀 ~ handleFinalSubmit ~ order:", order)
+        //     } else {
+        //         const eligibilityData = response.data
+        //         // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData:", eligibilityData)
+
+        //         // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData.message:", eligibilityData.message)
+        //         if (eligibilityData.message) {
+        //             setEligibilityError(eligibilityData.message)
+        //         }
+        //         // setEligibilityError("You are not eligible.")
+        //     }
+        // } catch (error: any) {
+        //     console.error("Eligibility API error:", error)
+
+        //     // Handle specific error cases
+        //     const errorMessage = error?.response?.data?.message || error?.message
+        //     console.log("🚀 ~ handleFinalSubmit ~ errorMessage:", errorMessage)
+
+        //     if (errorMessage?.includes("PAN already exists") || errorMessage?.includes("PAN already in use")) {
+        //         setEligibilityError("This PAN card is already registered with another account.")
+        //     } else if (errorMessage?.includes("not eligible")) {
+        //         setEligibilityError("You are not eligible for a loan at this time.")
+        //     } else {
+        //         setEligibilityError("You are not eligible. This PAN is already in use.")
+        //     }
+        // } finally {
+        //     setIsCheckingEligibility(false)
+        // }
         try {
-            const response = await eligibleCheckApi(finalValues)
-            // console.log("Eligibility check response:", response.data)
+            const response = await eligibleCheckApi(finalValues);
+            console.log("Eligibility check response:", response.data);
 
-            const customerId = response.data.data._id
-            const eligibilityData = response.data.data
-            // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData:", eligibilityData)
+            const customerId = response.data.data._id;
+            const eligibilityData = response.data.data;
+
             if (response.data.success) {
-                // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData.max_amount:", eligibilityData.max_amount)
-
-                // Set eligibility amount and tenure from API response
-                // console.log("eligibilityData.data.max_amount:", eligibilityData.data?.max_amount);
-
+                // Set values from response if present
                 if (eligibilityData.data?.max_amount) {
-                    setEligibilityAmount(Number(eligibilityData.data.max_amount)); // convert string to number
+                    setMaxAmount(Number(eligibilityData.data.max_amount));
+                }
+                if (eligibilityData.max_eligibility_amount) {
+                    setEligibilityAmount(Number(eligibilityData.max_eligibility_amount));
                 }
                 if (eligibilityData.tenure) {
-                    setEligibilityTenure(eligibilityData.tenure)
+                    setEligibilityTenure(eligibilityData.tenure);
                 }
-                // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData.eligibility_status:", eligibilityData.eligibility_status)
+
+                //  Handle non-eligible customers with specific message
+                console.log("🚀 ~ handleFinalSubmit ~ eligibilityData:", eligibilityData)
                 if (eligibilityData.eligibility_status === false) {
-                    setEligibilityError(eligibilityData.message || "Not eligible.")
+                    if (eligibilityData.message === "User already exists in the system.") {
+                        // Proceed without setting error
+                        setMaxAmount(10000);
+                        setEligibilityAmount(3000);
+                        setEligibilityTenure(30)
+                        // setInterestRate(8);           // You might already have a setter for this
+                        // setProcessingFees(3);         // Same here
+                    } else {
+                        setEligibilityError(eligibilityData.message || "Not eligible.");
+                        return; // Exit early if not eligible and not the fallback case
+                    }
                 }
-                // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData.message:", eligibilityData.message)
-                // console.log("🚀 ~ handleFinalSubmit ~ customerId:", customerId)
-                const order = await createOrderForEligible({ customerId })
+
+                //  Create order irrespectve of eligibility (handled in backend)
+                const order = await createOrderForEligible({ customerId });
                 if (order?.data?.order?.qrUrl) {
-                    // console.log("QR URL:", order.data.order.qrUrl)
-                    setQrUrl(order.data.order.qrUrl)
+                    setQrUrl(order.data.order.qrUrl);
                 }
-                setStep(4)
-                // console.log("🚀 ~ handleFinalSubmit ~ order:", order)
-            }
-            else {
-                const eligibilityData = response.data
-                // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData:", eligibilityData)
 
-                // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData.message:", eligibilityData.message)
+                setStep(4);
+            } else {
+                const eligibilityData = response.data;
                 if (eligibilityData.message) {
-                    setEligibilityError(eligibilityData.message)
-
+                    setEligibilityError(eligibilityData.message);
                 }
-                // setEligibilityError("You are not eligible.")
             }
         } catch (error: any) {
-            console.error("Eligibility API error:", error)
+            console.error("Eligibility API error:", error);
 
-            // Handle specific error cases
-            const errorMessage = error?.response?.data?.message || error?.message
+            const errorMessage = error?.response?.data?.message || error?.message;
+            console.log("🚀 ~ handleFinalSubmit ~ errorMessage:", errorMessage);
 
             if (errorMessage?.includes("PAN already exists") || errorMessage?.includes("PAN already in use")) {
-                setEligibilityError("This PAN card is already registered with another account.")
+                setEligibilityError("This PAN card is already registered with another account.");
             } else if (errorMessage?.includes("not eligible")) {
-                setEligibilityError("You are not eligible for a loan at this time.")
+                setEligibilityError("You are not eligible for a loan at this time.");
             } else {
-                setEligibilityError("You are not eligible. This PAN is already in use.")
+                setEligibilityError("You are not eligible. This PAN is already in use.");
             }
         } finally {
-            setIsCheckingEligibility(false)
+            setIsCheckingEligibility(false);
         }
+
     }
 
     const handleResendOtp = async () => {
@@ -363,6 +438,7 @@ const EligibilityCheckForm = () => {
         setOtpError("")
         setOtpSuccess(false)
         setEligibilityAmount(null)
+        setMaxAmount(null)
         setIsCustomerNotEligible(false)
         setIsEligibleCustomer(false)
 
@@ -396,21 +472,21 @@ const EligibilityCheckForm = () => {
 
     return (
         <div className="flex flex-col items-center justify-center m-1 mb-8">
-            <div className="w-full max-w-md">
-                <div className="bg-white shadow-md rounded p-6">
-                    <h5 className="text-2xl font-bold  text-center">
+            <div className="w-full max-w-full sm:max-w-md">
+                <div className=" rounded p-1 sm:p-4 mx-1 sm:mx-0">
+                    <h4 className="text-xl font-bold text-center">
                         {step === 1 && ""}
                         {step === 2 && (isEligibleCustomer ? "QR Generated" : "Verify OTP")}
-
                         {step === 4 && "QR Generated"}
-                    </h5>
+                    </h4>
                     {step === 3}
 
                     {/* Step 1: Phone Number */}
                     {step === 1 && (
                         <Formik
                             initialValues={{
-                                mobileNumber: formValues.mobileNumber, first_name: "",
+                                mobileNumber: formValues.mobileNumber,
+                                first_name: "",
                                 last_name: "",
                                 pan: "",
                                 pincode: "",
@@ -421,12 +497,11 @@ const EligibilityCheckForm = () => {
                             }}
                             validationSchema={phoneValidationSchema}
                             onSubmit={handlePhoneSubmit}
-
                         >
                             {({ values, setFieldValue }) => (
                                 <Form className="space-y-4">
                                     <div>
-                                        <h4 className="text-2xl font-bold  text-center" >Enter Mobile Number</h4>
+                                        <h4 className="text-2xl font-bold text-center">Enter Mobile Number</h4>
                                         <label className="block text-sm font-medium mb-1">Mobile Number</label>
                                         <Field name="mobileNumber">
                                             {({ field, form }: any) => (
@@ -436,7 +511,7 @@ const EligibilityCheckForm = () => {
                                                     inputMode="numeric"
                                                     pattern="[0-9]*"
                                                     placeholder="Enter 10 digit mobile number"
-                                                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                     onChange={(e) => {
                                                         const val = e.target.value.replace(/\D/g, "")
                                                         if (val.length <= 10) {
@@ -471,21 +546,19 @@ const EligibilityCheckForm = () => {
                     {/* Step 2: OTP Verification or QR Display for Eligible Customers */}
                     {step === 2 && (
                         <div>
-
-
                             {/* Show OTP form only if customer is not eligible yet */}
                             {!isEligibleCustomer && (
                                 <Formik initialValues={initialOtpValues} onSubmit={handleOtpSubmit}>
                                     {({ values, setFieldValue }) => {
-
                                         return (
                                             <Form className="space-y-6">
                                                 <p className="text-center mb-4">
-                                                    We've sent a verification code to <span className="font-semibold">{formValues.mobileNumber}</span>
+                                                    We've sent a verification code to{" "}
+                                                    <span className="font-semibold">{formValues.mobileNumber}</span>
                                                 </p>
                                                 <div>
                                                     <label className="block text-sm font-medium mb-2">Enter 6-digit OTP</label>
-                                                    <div className="flex justify-between gap-2">
+                                                    <div className="flex justify-between gap-1 sm:gap-2">
                                                         {[0, 1, 2, 3, 4, 5].map((index) => (
                                                             <input
                                                                 key={index}
@@ -494,7 +567,7 @@ const EligibilityCheckForm = () => {
                                                                 inputMode="numeric"
                                                                 pattern="[0-9]*"
                                                                 disabled={isVerifyingOtp || isOtpVerified}
-                                                                className="w-10 h-10 text-center text-xl border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                                                                className="w-12 h-12 sm:w-10 sm:h-10 text-center text-xl border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                                                                 value={values.otp[index] || ""}
                                                                 onChange={(e) => {
                                                                     const val = e.target.value.replace(/\D/g, "")
@@ -606,33 +679,42 @@ const EligibilityCheckForm = () => {
                             {/* Show congratulations and QR for eligible customers */}
                             {isEligibleCustomer && (
                                 <div className="space-y-6">
-                                    {/* {otpSuccess && (
-                                        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded flex items-center">
-                                            <CheckCircle2 className="h-5 w-5 mr-2" />
-                                            <span>OTP verified successfully!</span>
-                                        </div>
-                                    )} */}
-
                                     {eligibilityAmount && (
-                                        <div className="mt-6 p-6 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg text-center">
-                                            <h3 className="text-green-600 font-bold text-2xl py-2">🎉 Congratulations!</h3>
+                                        <div className=" p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg text-center">
                                             <div className="space-y-2">
-                                                <p className="text-gray-700 text-lg">
-                                                    You are eligible for a loan of up to{" "}
-                                                    <span className="font-semibold text-blue-600">₹{eligibilityAmount.toLocaleString()}</span>
+                                                <p className="text-gray-700 text-md">
+                                                    You are eligible for a loan of{" "}
+                                                    {maxAmount && eligibilityAmount ? (
+                                                        <>
+                                                            <span className="font-semibold text-blue-600 ">₹{eligibilityAmount.toLocaleString()}</span>
+                                                            {" to "}
+                                                            <span className="font-semibold text-blue-600">₹{maxAmount.toLocaleString()}</span>
+
+
+                                                        </>
+
+                                                    ) : (
+                                                        <>
+                                                            up to{" "}
+                                                            <span className="font-semibold text-blue-600">
+                                                                ₹{eligibilityAmount?.toLocaleString()}
+                                                            </span>
+                                                            {" to "}
+
+                                                            <span className="font-semibold text-blue-600">₹10000</span>
+
+                                                        </>
+                                                    )}
                                                 </p>
                                                 {eligibilityTenure && (
                                                     <>
-                                                        <p className="text-gray-700 text-base">
-                                                            Loan Tenure:{" "}
-                                                            <span className="font-semibold text-green-600">30 days</span>
-                                                        </p>
-                                                        <p className="text-gray-700 text-base">
-                                                            Interest Rate: 8%
-                                                        </p>
-                                                        <p className="text-gray-700 text-base">
-                                                            Processing Fees: 3%
-                                                        </p>
+                                                        <ul className="list-disc pl-5">
+                                                            <li>
+                                                                Loan Tenure: <span className="font-semibold text-green-600">30 days</span>
+                                                            </li>
+                                                            <li>Interest Rate: 8%</li>
+                                                            <li>Processing Fees: 3%</li>
+                                                        </ul>
                                                     </>
                                                 )}
                                             </div>
@@ -649,11 +731,7 @@ const EligibilityCheckForm = () => {
                                             <p className="text-gray-600">Scan the QR code below to proceed with your loan application</p>
                                             <div className="flex flex-col items-center gap-4">
                                                 <div className="p-4 bg-white border-2 border-gray-200 rounded-lg shadow-sm">
-                                                    <a
-                                                        href={qrUrl}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                    >
+                                                    <a href={qrUrl} target="_blank" rel="noopener noreferrer">
                                                         <QRCode value={qrUrl} size={150} />
                                                     </a>
                                                 </div>
@@ -671,15 +749,6 @@ const EligibilityCheckForm = () => {
                                             <ArrowLeft className="h-4 w-4 mr-1" />
                                             Back
                                         </button>
-
-                                        {/* {qrUrl && (
-                                            <button
-                                                onClick={handleProceedToStep4}
-                                                className="btn btn-info w-full gap-2 flex items-center justify-center"
-                                            >
-                                                Continue
-                                            </button>
-                                        )} */}
                                     </div>
                                 </div>
                             )}
@@ -714,7 +783,7 @@ const EligibilityCheckForm = () => {
                                                     value={formValues.mobileNumber}
                                                     readOnly
                                                     disabled
-                                                    className="w-full p-1 border border-gray-300 rounded bg-gray-50 text-gray-700"
+                                                    className="w-full p-2 border border-gray-300 rounded bg-gray-50 text-gray-700"
                                                 />
                                                 <div className="ml-2 text-blue-600">
                                                     <CheckCircle2 className="h-5 w-5" />
@@ -724,12 +793,12 @@ const EligibilityCheckForm = () => {
 
                                         {/* First Name */}
                                         <div>
-                                            <label className="block text-sm font-medium">First Name(As per PAN)</label>
+                                            <label className="block text-sm font-medium mb-1">First Name(As per PAN)</label>
                                             <Field name="first_name">
                                                 {({ field, form }: any) => (
                                                     <input
                                                         {...field}
-                                                        className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                         onChange={(e) => {
                                                             const val = e.target.value.replace(/[^A-Za-z]/g, "")
                                                             form.setFieldValue("first_name", val)
@@ -742,12 +811,12 @@ const EligibilityCheckForm = () => {
 
                                         {/* Last Name */}
                                         <div>
-                                            <label className="block text-sm font-medium ">Last Name(As per PAN)</label>
+                                            <label className="block text-sm font-medium mb-1">Last Name(As per PAN)</label>
                                             <Field name="last_name">
                                                 {({ field, form }: any) => (
                                                     <input
                                                         {...field}
-                                                        className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                         onChange={(e) => {
                                                             const val = e.target.value.replace(/[^A-Za-z]/g, "")
                                                             form.setFieldValue("last_name", val)
@@ -760,13 +829,13 @@ const EligibilityCheckForm = () => {
 
                                         {/* PAN Card */}
                                         <div>
-                                            <label className="block text-sm font-medium ">PAN Card</label>
+                                            <label className="block text-sm font-medium mb-1">PAN Card</label>
                                             <Field name="pan">
                                                 {({ field, form }: any) => (
                                                     <input
                                                         {...field}
                                                         maxLength={10}
-                                                        className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
+                                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
                                                         onChange={(e) => {
                                                             const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "")
                                                             form.setFieldValue("pan", val)
@@ -779,14 +848,14 @@ const EligibilityCheckForm = () => {
 
                                         {/* Pincode */}
                                         <div>
-                                            <label className="block text-sm font-medium ">Pincode</label>
+                                            <label className="block text-sm font-medium mb-1">Pincode</label>
                                             <Field name="pincode">
                                                 {({ field, form }: any) => (
                                                     <input
                                                         {...field}
                                                         maxLength={6}
                                                         inputMode="numeric"
-                                                        className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                         onChange={(e) => {
                                                             const val = e.target.value.replace(/\D/g, "")
                                                             form.setFieldValue("pincode", val)
@@ -799,12 +868,12 @@ const EligibilityCheckForm = () => {
 
                                         {/* Date of Birth */}
                                         <div>
-                                            <label className="block text-sm font-medium ">Date of Birth</label>
+                                            <label className="block text-sm font-medium mb-1">Date of Birth</label>
                                             <div className="flex gap-2">
                                                 <Field
                                                     as="select"
                                                     name="dob_day"
-                                                    className="flex-1 p-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                 >
                                                     <option value="">Day</option>
                                                     {[...Array(31)].map((_, i) => (
@@ -817,7 +886,7 @@ const EligibilityCheckForm = () => {
                                                 <Field
                                                     as="select"
                                                     name="dob_month"
-                                                    className="flex-1 p-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    className="flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                 >
                                                     <option value="">Month</option>
                                                     {[
@@ -848,7 +917,7 @@ const EligibilityCheckForm = () => {
                                                                 type="text"
                                                                 maxLength={4}
                                                                 placeholder="Year"
-                                                                className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                                 onChange={(e) => {
                                                                     const val = e.target.value.replace(/\D/g, "")
                                                                     form.setFieldValue("dob_year", val)
@@ -867,12 +936,12 @@ const EligibilityCheckForm = () => {
 
                                         {/* Monthly Income */}
                                         <div>
-                                            <label className="block text-sm font-medium ">Monthly Income (₹)</label>
+                                            <label className="block text-sm font-medium mb-1">Monthly Income (₹)</label>
                                             <Field name="income">
                                                 {({ field, form }: any) => (
                                                     <input
                                                         {...field}
-                                                        className="w-full p-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                         inputMode="numeric"
                                                         onChange={(e) => {
                                                             const val = e.target.value.replace(/[^0-9]/g, "")
@@ -910,31 +979,33 @@ const EligibilityCheckForm = () => {
                                 {/* Enhanced Eligibility Information Display */}
                                 {eligibilityAmount && (
                                     <div className="mt-6 p-6 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg text-center">
-                                        <h3 className="text-green-600 font-bold text-2xl py-2">🎉 Congratulations!</h3>
                                         <div className="space-y-2">
-                                            <p className="text-gray-700 text-lg">
-                                                You are eligible for a loan of up to{" "}
-                                                <span className="font-semibold text-blue-600">₹{eligibilityAmount.toLocaleString()}</span>
+                                            <p className="text-gray-700 text-md">
+                                                You are eligible for a loan of{" "}
+                                                {maxAmount && eligibilityAmount ? (
+                                                    <>
+                                                        <span className="font-semibold text-blue-600">₹{eligibilityAmount.toLocaleString()}</span>
+                                                        {" to "}
+                                                        <span className="font-semibold text-blue-600">₹{maxAmount.toLocaleString()}</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        up to{" "}
+                                                        <span className="font-semibold text-blue-600">₹{eligibilityAmount?.toLocaleString()}</span>
+                                                    </>
+                                                )}
                                             </p>
                                             {eligibilityTenure && (
                                                 <>
-                                                    <p className="text-gray-700 text-base">
-                                                        Loan Tenure: <span className="font-semibold text-green-600">30 days</span>
-                                                    </p>
-                                                    <p className="text-gray-700 text-base">
-                                                        Interest Rate: 8%
-                                                    </p>
-                                                    <p className="text-gray-700 text-base">
-                                                        Processing Fees: 3%
-                                                    </p>
+                                                    <ul className="list-disc pl-5">
+                                                        <li> 
+                                                            Loan Tenure: <span className="font-semibold text-green-600">30 days</span>
+                                                        </li>
+                                                        <li>Interest Rate: 8%</li>
+                                                        <li>Processing Fees: 3%</li>
+                                                    </ul>
                                                 </>
-
                                             )}
-                                            {/* <div className="mt-4 p-3 bg-white rounded-lg border border-gray-200">
-                                                <p className="text-sm text-gray-600">
-                                                    <strong>Next Steps:</strong> Scan the QR code below to complete your loan application process
-                                                </p>
-                                            </div> */}
                                         </div>
                                     </div>
                                 )}
@@ -943,11 +1014,7 @@ const EligibilityCheckForm = () => {
                                     {qrUrl && (
                                         <div className="flex flex-col items-center gap-4 mt-4">
                                             <div className="p-4 bg-white border-2 border-gray-200 rounded-lg shadow-sm">
-                                                <a
-                                                    href={qrUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                >
+                                                <a href={qrUrl} target="_blank" rel="noopener noreferrer">
                                                     <QRCode value={qrUrl} size={150} />
                                                 </a>
                                             </div>
@@ -967,7 +1034,7 @@ const EligibilityCheckForm = () => {
                     )}
                 </div>
             </div>
-        </div >
+        </div>
     )
 }
 

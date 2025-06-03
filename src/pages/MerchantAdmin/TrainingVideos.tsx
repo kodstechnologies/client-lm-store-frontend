@@ -77,7 +77,7 @@ const TrainingVideos = () => {
 
             {/* Video Grid */}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredItems.map((video) => (
+                {/* {filteredItems.map((video) => (
                     <div key={video.id} className="bg-white dark:bg-gray-900 rounded-lg shadow-lg overflow-hidden">
                         <iframe title={video.title} src={video.youtubelink} className="w-full h-56"></iframe>
                         <div className="p-4">
@@ -85,7 +85,7 @@ const TrainingVideos = () => {
                             <p className="text-gray-600 dark:text-gray-300">{video.description}</p>
                         </div>
                     </div>
-                ))}
+                ))} */}
             </div>
         </div>
     );

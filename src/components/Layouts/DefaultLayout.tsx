@@ -71,19 +71,19 @@ const DefaultLayout = ({ children }: PropsWithChildren) => {
                     </div>
                 )}
                 <div className="fixed bottom-6 ltr:right-6 rtl:left-6 z-50">
-                {support ? (
-    <div className="absolute bg-green-600 text-white p-4 rounded-lg w-64 shadow-lg 
+                    {support ? (
+                        <div className="absolute bg-green-600 text-white p-4 rounded-lg w-64 shadow-lg 
                     right-12 bottom-11  flex flex-col items-start">
-        {/* Triangle Pointer - Aligned Right */}
-        <div className="absolute -right-2 top-14 w-0 h-0 
+                            {/* Triangle Pointer - Aligned Right */}
+                            <div className="absolute -right-2 top-14 w-0 h-0 
                         border-l-8 border-l-green-600 
                         border-t-8 border-b-8 border-transparent">
-        </div>
+                            </div>
 
-        <p className="text-lg font-semibold">WhatsApp Support</p>
-        <p className="text-md font-bold">No: <span className="font-medium">+91 9876432118</span></p>
-    </div>
-) : null}
+                            <p className="text-lg font-semibold">WhatsApp Support</p>
+                            <p className="text-md font-bold">No: <span className="font-medium">+919900300011</span></p>
+                        </div>
+                    ) : null}
 
 
                     <button
@@ -109,7 +109,7 @@ const DefaultLayout = ({ children }: PropsWithChildren) => {
                             </svg>
                         </button>
                     ) :
-                    <div className='h-8'> </div>
+                        <div className='h-8'> </div>
                     }
                 </div>
 
@@ -140,7 +140,7 @@ const DefaultLayout = ({ children }: PropsWithChildren) => {
                     </div>
                 </div>
             </div>
-            
+
         </App>
     );
 };
