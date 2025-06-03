@@ -713,7 +713,7 @@ const OrdersDemo = () => {
                                 })}
                             </tbody>
                             {totalPages  && (
-                                <ul className="fixed bottom-20 right-14 z-10 inline-flex items-center space-x-1 rtl:space-x-reverse justify-center  bg-white">
+                                <ul className="fixed bottom-20 right-14 z-10 inline-flex items-center space-x-1 rtl:space-x-reverse justify-center ">
                                     {/* First Button */}
                                     {/* <li>
                                         <button
