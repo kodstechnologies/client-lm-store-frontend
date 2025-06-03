@@ -640,150 +640,118 @@ const OrdersDemo = () => {
             {!loading && !error && (
                 <>
                     {/* Responsive Table View for All Devices */}
-                    <div className="overflow-x-auto">
-                        <table className="w-full border-collapse border border-gray-200 bg-white rounded-lg shadow">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="border border-gray-300 p-2 sm:p-3 text-center font-semibold text-xs sm:text-sm">
-                                        Details
-                                    </th>
-                                    <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">ID</th>
-                                    <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">
-                                        Status
-                                    </th>
-                                    <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">
-                                        Date & Time
-                                    </th>
-                                    <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">Name</th>
-                                    <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">
-                                        Phone
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {orders.length === 0 && (
+                    <div className="relative">
+                        {/* Scrollable Table Container */}
+                        <div className="max-h-[500px] overflow-y-auto rounded-lg shadow border border-gray-200">
+                            <table className="w-full border-collapse bg-white">
+                                <thead className="bg-gray-50 sticky top-0 z-10">
                                     <tr>
-                                        <td colSpan={6} className="border border-gray-300 p-8 text-center text-gray-500">
-                                            {isSearchMode ? `No orders found for phone number "${search}"` : "No orders found."}
-                                        </td>
+                                        <th className="border border-gray-300 p-2 sm:p-3 text-center font-semibold text-xs sm:text-sm">Details</th>
+                                        <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">ID</th>
+                                        <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">Status</th>
+                                        <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">Date & Time</th>
+                                        <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">Name</th>
+                                        <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">Phone</th>
                                     </tr>
-                                )}
-                                {orders.map((row) => {
-                                    const rowId = row.id || row.orderId
-                                    const isCompleting = completingOrders.has(rowId)
+                                </thead>
+                                <tbody>
+                                    {orders.length === 0 && (
+                                        <tr>
+                                            <td colSpan={6} className="border border-gray-300 p-8 text-center text-gray-500">
+                                                {isSearchMode ? `No orders found for phone number "${search}"` : "No orders found."}
+                                            </td>
+                                        </tr>
+                                    )}
+                                    {orders.map((row) => {
+                                        const rowId = row.id || row.orderId;
+                                        const isCompleting = completingOrders.has(rowId);
 
-                                    return (
-                                        <React.Fragment key={rowId}>
-                                            <tr className="border border-gray-300 hover:bg-gray-50">
-                                                <td className="border border-gray-300 p-2 sm:p-3 text-center">
-                                                    <button
-                                                        onClick={() => toggleRow(rowId)}
-                                                        className="text-xl sm:text-2xl focus:outline-none hover:text-primary transition-colors"
-                                                    >
-                                                        {expandedRow === rowId ? <IoIosArrowDropdown /> : <IoIosArrowDropright />}
-                                                    </button>
-                                                </td>
-                                                <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">
-                                                    <span>{row.orderId || row.id}</span>
-                                                </td>
-                                                <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">
-                                                    {getStatusButton(row.status)}
-                                                </td>
-                                                <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">
-                                                    {formatDateTime(row.createdAt)}
-                                                </td>
-                                                <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">{row.name}</td>
-                                                <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">{row.number}</td>
-                                            </tr>
-                                            {expandedRow === rowId && (
-                                                <tr>
-                                                    <td colSpan={6} className="border border-gray-300 p-0">
-                                                        <AccordionContent
-                                                            status={row.status}
-                                                            orderId={rowId}
-                                                            qrUrl={row.qrUrl}
-                                                            onCompleteOrder={handleCompleteOrder}
-                                                            isCompletingOrder={isCompleting}
-                                                        />
+                                        return (
+                                            <React.Fragment key={rowId}>
+                                                <tr className="border border-gray-300 hover:bg-gray-50">
+                                                    <td className="border border-gray-300 p-2 sm:p-3 text-center">
+                                                        <button
+                                                            onClick={() => toggleRow(rowId)}
+                                                            className="text-xl sm:text-2xl focus:outline-none hover:text-primary transition-colors"
+                                                        >
+                                                            {expandedRow === rowId ? <IoIosArrowDropdown /> : <IoIosArrowDropright />}
+                                                        </button>
                                                     </td>
+                                                    <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">
+                                                        {row.orderId || row.id}
+                                                    </td>
+                                                    <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">
+                                                        {getStatusButton(row.status)}
+                                                    </td>
+                                                    <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">
+                                                        {formatDateTime(row.createdAt)}
+                                                    </td>
+                                                    <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">{row.name}</td>
+                                                    <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">{row.number}</td>
                                                 </tr>
-                                            )}
-                                        </React.Fragment>
-                                    )
-                                })}
-                            </tbody>
-                            {totalPages  && (
-                                <ul className="fixed bottom-20 right-14 z-10 inline-flex items-center space-x-1 rtl:space-x-reverse justify-center ">
-                                    {/* First Button */}
-                                    {/* <li>
+                                                {expandedRow === rowId && (
+                                                    <tr>
+                                                        <td colSpan={6} className="border border-gray-300 p-0">
+                                                            <AccordionContent
+                                                                status={row.status}
+                                                                orderId={rowId}
+                                                                qrUrl={row.qrUrl}
+                                                                onCompleteOrder={handleCompleteOrder}
+                                                                isCompletingOrder={isCompleting}
+                                                            />
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </React.Fragment>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Fixed Pagination */}
+                        {totalPages && (
+                            <ul className="mt-6 mb-10 flex justify-center items-center space-x-1 rtl:space-x-reverse">
+                                <li>
+                                    <button
+                                        type="button"
+                                        onClick={() => handlePageChange(currentPage - 1)}
+                                        disabled={currentPage === 1}
+                                        className="p-2 rounded-full transition bg-white-light text-dark hover:text-white hover:bg-primary disabled:opacity-50"
+                                    >
+                                        <MdArrowBackIos />
+                                    </button>
+                                </li>
+
+                                {getVisiblePages().map((pageNum) => (
+                                    <li key={pageNum}>
                                         <button
                                             type="button"
-                                            onClick={() => handlePageChange(1)}
-                                            disabled={currentPage === 1}
-                                            className="flex justify-center font-semibold p-2 rounded-full transition bg-white-light text-dark hover:text-white hover:bg-primary dark:text-white-light dark:bg-[#191e3a] dark:hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                                            onClick={() => handlePageChange(pageNum)}
+                                            className={`px-3.5 py-2 rounded-full transition font-semibold ${currentPage === pageNum
+                                                ? "bg-primary text-white"
+                                                : "bg-white-light text-dark hover:text-white hover:bg-primary"
+                                                }`}
                                         >
-                                            First
-                                        </button>
-                                    </li> */}
-
-                                    {/* Previous Button */}
-                                    <li>
-                                        <button
-                                            type="button"
-                                            onClick={() => handlePageChange(currentPage - 1)}
-                                            disabled={currentPage === 1}
-                                            className="flex justify-center font-semibold p-2 rounded-full transition bg-white-light text-dark hover:text-white hover:bg-primary dark:text-white-light dark:bg-[#191e3a] dark:hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <MdArrowBackIos />
-                                        </button>
-                                    </li>
-
-                                    {/* Page Numbers */}
-                                    {getVisiblePages().map((pageNum) => (
-                                        <li key={pageNum}>
-                                            <button
-                                                type="button"
-                                                onClick={() => handlePageChange(pageNum)}
-                                                className={`flex justify-center font-semibold px-3.5 py-2 rounded-full transition ${currentPage === pageNum
-                                                    ? "bg-primary text-white dark:text-white-light dark:bg-primary"
-                                                    : "bg-white-light text-dark hover:text-white hover:bg-primary dark:text-white-light dark:bg-[#191e3a] dark:hover:bg-primary"
-                                                    }`}
-                                            >
-                                                {pageNum}
-                                            </button>
-                                        </li>
-                                    ))}
-
-                                    {/* Next Button */}
-                                    <li>
-                                        <button
-                                            type="button"
-                                            onClick={() => handlePageChange(currentPage + 1)}
-                                            disabled={currentPage === totalPages}
-                                            className="flex justify-center font-semibold p-2 rounded-full transition bg-white-light text-dark hover:text-white hover:bg-primary dark:text-white-light dark:bg-[#191e3a] dark:hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <MdOutlineArrowForwardIos />
+                                            {pageNum}
                                         </button>
                                     </li>
+                                ))}
 
-                                    {/* Last Button */}
-                                    {/* <li>
-                                        <button
-                                            type="button"
-                                            onClick={() => handlePageChange(totalPages)}
-                                            disabled={currentPage === totalPages}
-                                            className="flex justify-center font-semibold p-2 rounded-full transition bg-white-light text-dark hover:text-white hover:bg-primary dark:text-white-light dark:bg-[#191e3a] dark:hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            Last
-                                        </button>
-                                    </li> */}
-                                </ul>
-                            )}
-                        </table>
-
-                        {/* Functional Pagination Component */}
-
+                                <li>
+                                    <button
+                                        type="button"
+                                        onClick={() => handlePageChange(currentPage + 1)}
+                                        disabled={currentPage === totalPages}
+                                        className="p-2 rounded-full transition bg-white-light text-dark hover:text-white hover:bg-primary disabled:opacity-50"
+                                    >
+                                        <MdOutlineArrowForwardIos />
+                                    </button>
+                                </li>
+                            </ul>
+                        )}
                     </div>
+
                 </>
             )}
         </div>
