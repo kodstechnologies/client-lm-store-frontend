@@ -680,10 +680,10 @@ const EligibilityCheckForm = () => {
               {isEligibleCustomer && (
                 <div className="space-y-3">
                   {eligibilityAmount && (
-                    <div className=" p-2 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg text-center">
+                    <div className=" p-2 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg text-left">
                       <div className="space-y-1">
                         <p className="text-gray-700 text-sm">
-                          You are eligible for a loan of{" "}
+                          You are eligible for a loan ranging from <br></br>{" "}
                           {maxAmount && eligibilityAmount ? (
                             <>
                               <span className="font-semibold text-blue-600 ">
@@ -694,7 +694,7 @@ const EligibilityCheckForm = () => {
                             </>
                           ) : (
                             <>
-                              up to{" "}
+                              {" "}
                               <span className="font-semibold text-blue-600">
                                 ₹{eligibilityAmount?.toLocaleString()}
                               </span>
@@ -704,7 +704,7 @@ const EligibilityCheckForm = () => {
                           )}
                         </p>
                         {eligibilityTenure && (
-                          <>
+                          <div className="text-left">
                             <ul className="list-disc pl-5 text-xs">
                               <li>
                                 Loan Tenure: <span className="font-semibold text-green-600">30 days</span>
@@ -712,8 +712,9 @@ const EligibilityCheckForm = () => {
                               <li>Interest Rate: 8%</li>
                               <li>Processing Fees: 3%</li>
                             </ul>
-                          </>
+                          </div>
                         )}
+
                       </div>
                     </div>
                   )}
@@ -980,10 +981,10 @@ const EligibilityCheckForm = () => {
 
                 {/* Enhanced Eligibility Information Display */}
                 {eligibilityAmount && (
-                  <div className="mt-3 p-3 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg text-center">
+                  <div className="mt-3 p-3 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg text-left">
                     <div className="space-y-1">
                       <p className="text-gray-700 text-sm">
-                        You are eligible for a loan of{" "}
+                        You are eligible for a loan ranging from <br></br>{" "}
                         {maxAmount && eligibilityAmount ? (
                           <>
                             <span className="font-semibold text-blue-600">₹{eligibilityAmount.toLocaleString()}</span>
@@ -992,13 +993,13 @@ const EligibilityCheckForm = () => {
                           </>
                         ) : (
                           <>
-                            up to{" "}
+                            {" "}
                             <span className="font-semibold text-blue-600">₹{eligibilityAmount?.toLocaleString()}</span>
                           </>
                         )}
                       </p>
                       {eligibilityTenure && (
-                        <>
+                        <div className="text-left">
                           <ul className="list-disc pl-5 text-xs">
                             <li>
                               Loan Tenure: <span className="font-semibold text-green-600">30 days</span>
@@ -1006,8 +1007,9 @@ const EligibilityCheckForm = () => {
                             <li>Interest Rate: 8%</li>
                             <li>Processing Fees: 3%</li>
                           </ul>
-                        </>
+                        </div>
                       )}
+
                     </div>
                   </div>
                 )}

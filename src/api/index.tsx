@@ -138,6 +138,7 @@ export const fetchOrdersByStore = async () => {
                 Authorization: `Bearer ${token}`
             }
         });
+        // console.log("🚀 ~ fetchOrdersByStore ~ res:", res)
         // console.log("res fro orders by id", res);
 
         return res.data; // optional: you can return just the data

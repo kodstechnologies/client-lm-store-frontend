@@ -1,8 +1,8 @@
+"use client"
 
 import React, { useState, useEffect, useRef } from "react"
 import { useDispatch } from "react-redux"
 import { setPageTitle } from "../../store/themeConfigSlice"
-import { Link } from "react-router-dom"
 import { IoIosArrowDropright, IoIosArrowDropdown, IoMdFunnel } from "react-icons/io"
 import { IoMdArrowDropdownCircle } from "react-icons/io"
 import { IoMdArrowDroprightCircle } from "react-icons/io"
@@ -18,10 +18,9 @@ import RemarkDetails from "../../components/order_status/RemarkDetails"
 import UTRDetails from "../../components/order_status/UTRDetails"
 import RejectedRemark from "../../components/order_status/RejectedRemark"
 import CompletedStatusEmiDetails from "../../components/order_status/CompletedStatusEmiDetails"
-import { updateOrderById, searchOrderByPhoneNumber, fetchOrdersByStore, filterByDate } from "../../api"
-import { MdArrowBackIos } from "react-icons/md";
-import { MdOutlineArrowForwardIos } from "react-icons/md";
-
+import { updateOrderById, searchOrderByPhoneNumber, fetchOrdersByStore } from "../../api"
+import { MdArrowBackIos } from "react-icons/md"
+import { MdOutlineArrowForwardIos } from "react-icons/md"
 
 interface AccordionContentProps {
     status: string
@@ -110,7 +109,7 @@ const AccordionContent = ({ status, orderId, qrUrl, onCompleteOrder, isCompletin
                                 </span>
                             </>
                         ) : (
-                            <>{/* View more button hidden for completed orders */}</>
+                            <></>
                         )}
                     </button>
                     {isExpanded && (
@@ -241,6 +240,9 @@ const AccordionContent = ({ status, orderId, qrUrl, onCompleteOrder, isCompletin
 }
 
 const OrdersDemo = () => {
+    const [allOrders, setAllOrders] = useState<any[]>([])
+    const [filteredOrders, setFilteredOrders] = useState<Array<any>>([])
+
     const dispatch = useDispatch()
     const [expandedRow, setExpandedRow] = useState<string | null>(null)
     const [orders, setOrders] = useState<Array<any>>([])
@@ -255,30 +257,34 @@ const OrdersDemo = () => {
     const flatpickrRef = useRef<Flatpickr | null>(null)
     const [isDateFilterMode, setIsDateFilterMode] = useState<boolean>(false)
     const [dateFilterLoading, setDateFilterLoading] = useState<boolean>(false)
+    const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState<boolean>(false)
+    const [initialLoading, setInitialLoading] = useState<boolean>(true)
 
     // Pagination states
     const [currentPage, setCurrentPage] = useState<number>(1)
     const [totalPages, setTotalPages] = useState<number>(1)
     const [totalOrders, setTotalOrders] = useState<number>(0)
-    const ordersPerPage = 100
+    const ordersPerPage = 10
 
     useEffect(() => {
         dispatch(setPageTitle("Orders"))
     }, [dispatch])
 
     // Load orders with pagination (100 orders per page from past 30 days)
-    const loadOrdersWithPagination = async (page = 1) => {
-        setLoading(true)
+    const loadOrdersWithPagination = async (page = 1, isInitialLoad = false) => {
+        if (isInitialLoad) {
+            setInitialLoading(true)
+        } else {
+            setLoading(true)
+        }
         setError(null)
         try {
-            // Calculate date range for past 30 days
+            const response = await fetchOrdersByStore()
+
             const endDate = new Date()
             const startDate = new Date()
             startDate.setDate(startDate.getDate() - 30)
 
-            const response = await fetchOrdersByStore()
-
-            // Filter orders from past 30 days
             const filteredOrders = response.data
                 .filter((order: any) => {
                     const orderDate = new Date(order.createdAt)
@@ -286,7 +292,9 @@ const OrdersDemo = () => {
                 })
                 .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
-            // Calculate pagination
+            setAllOrders(filteredOrders)
+
+            // Apply pagination to filteredOrders
             const totalFilteredOrders = filteredOrders.length
             const calculatedTotalPages = Math.ceil(totalFilteredOrders / ordersPerPage)
             const startIndex = (page - 1) * ordersPerPage
@@ -297,11 +305,15 @@ const OrdersDemo = () => {
             setTotalPages(calculatedTotalPages)
             setTotalOrders(totalFilteredOrders)
             setCurrentPage(page)
-        } catch (err: any) {
+        } catch (err) {
             setError("Failed to load orders.")
             console.error(err)
         } finally {
-            setLoading(false)
+            if (isInitialLoad) {
+                setInitialLoading(false)
+            } else {
+                setLoading(false)
+            }
         }
     }
 
@@ -318,8 +330,11 @@ const OrdersDemo = () => {
             setCurrentPage(1)
         } catch (err: any) {
             console.error("Search error:", err)
-            setError(typeof err === "string" ? err : "Failed to search orders.")
+            // Don't set error state for "no orders found" - let table handle it
             setOrders([])
+            setTotalPages(1)
+            setTotalOrders(0)
+            setCurrentPage(1)
         } finally {
             setSearchLoading(false)
         }
@@ -329,30 +344,68 @@ const OrdersDemo = () => {
         setSearch("")
         setIsSearchMode(false)
         setError(null)
-        loadOrdersWithPagination(1)
+
+        // If date filter is active, don't reload - just clear search mode
+        if (!isDateFilterMode) {
+            loadOrdersWithPagination(1, false)
+        }
     }
 
-    const handleDateFilter = async (selectedDates: Date[]) => {
+    const handleDateFilter = (selectedDates: Date[]) => {
         if (selectedDates.length === 2) {
             setDateFilterLoading(true)
             setError(null)
             setIsDateFilterMode(true)
 
+            const startDate = new Date(selectedDates[0])
+            startDate.setHours(0, 0, 0, 0)
+
+            const endDate = new Date(selectedDates[1])
+            endDate.setHours(23, 59, 59, 999)
+
             try {
-                const startDate = new Date(selectedDates[0])
-                startDate.setHours(0, 0, 0, 0)
+                let dataToFilter = allOrders
 
-                const endDate = new Date(selectedDates[1])
-                endDate.setHours(23, 59, 59, 999)
+                // If we're in search mode, we should maintain the search context
+                // and not show date-filtered results from all orders
+                if (isSearchMode) {
+                    // In search mode, if there are no search results,
+                    // date filter should also show no results
+                    if (orders.length === 0) {
+                        setOrders([])
+                        setTotalPages(1)
+                        setTotalOrders(0)
+                        setCurrentPage(1)
+                        setFilteredOrders([])
+                        setDateFilterLoading(false)
+                        return
+                    }
+                    // If there are search results, filter those by date
+                    dataToFilter = orders
+                }
 
-                const response = await filterByDate(startDate.toISOString(), endDate.toISOString())
-                // console.log("🚀 ~ handleDateFilter ~ response?.data:", response?.data)
+                const filtered = dataToFilter.filter((order) => {
+                    const orderDate = new Date(order.createdAt)
+                    return orderDate >= startDate && orderDate <= endDate
+                })
 
-                setOrders(response?.data || [])
-                setTotalPages(1)
-                setTotalOrders(response?.data?.length || 0)
+                const sorted = filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+                // Store filtered data for pagination
+                setFilteredOrders(sorted)
+
+                // Apply pagination to first page
+                const totalFiltered = sorted.length
+                const calculatedTotalPages = Math.ceil(totalFiltered / ordersPerPage)
+                const startIndex = 0
+                const endIndex = startIndex + ordersPerPage
+                const paginated = sorted.slice(startIndex, endIndex)
+
+                setOrders(paginated)
+                setTotalPages(calculatedTotalPages)
+                setTotalOrders(totalFiltered)
                 setCurrentPage(1)
-            } catch (err: any) {
+            } catch (err) {
                 console.error("Date filter error:", err)
                 setError("Failed to filter orders by date.")
                 setOrders([])
@@ -362,34 +415,45 @@ const OrdersDemo = () => {
         }
     }
 
-
     const handleClearDateFilter = () => {
         setDateRange([])
         setIsDateFilterMode(false)
+        setFilteredOrders([])
         setError(null)
         if (flatpickrRef.current) {
             flatpickrRef.current.flatpickr.clear()
         }
-        loadOrdersWithPagination(1)
+        loadOrdersWithPagination(1, false)
     }
 
+    // Replace the initial load useEffect
     useEffect(() => {
-        loadOrdersWithPagination(1)
-    }, [])
+        if (!hasInitiallyLoaded) {
+            loadOrdersWithPagination(1, true)
+            setHasInitiallyLoaded(true)
+        }
+    }, [hasInitiallyLoaded])
 
-    // Debounced search effect
+    // Replace the debounced search effect
     useEffect(() => {
+        // Don't run this effect during initial load
+        if (!hasInitiallyLoaded) return
+
         const timeoutId = setTimeout(() => {
             if (search.trim()) {
+                // If there's a search term, perform search
                 handleSearch(search.trim())
-            } else if (!isDateFilterMode) {
+            } else if (isSearchMode) {
+                // If search was cleared, reset to default view
                 setIsSearchMode(false)
-                loadOrdersWithPagination(1)
+                if (!isDateFilterMode) {
+                    loadOrdersWithPagination(1)
+                }
             }
         }, 500)
 
         return () => clearTimeout(timeoutId)
-    }, [search, isDateFilterMode])
+    }, [search, hasInitiallyLoaded]) // Removed isDateFilterMode dependency
 
     // Clear success message after 3 seconds
     useEffect(() => {
@@ -465,8 +529,17 @@ const OrdersDemo = () => {
     const handlePageChange = (page: number) => {
         if (page >= 1 && page <= totalPages && page !== currentPage) {
             setExpandedRow(null) // Close any expanded rows
+
             if (!isSearchMode && !isDateFilterMode) {
-                loadOrdersWithPagination(page)
+                loadOrdersWithPagination(page, false)
+            } else if (isDateFilterMode && filteredOrders.length > 0) {
+                // Handle pagination for date filtered data
+                const startIndex = (page - 1) * ordersPerPage
+                const endIndex = startIndex + ordersPerPage
+                const paginatedOrders = filteredOrders.slice(startIndex, endIndex)
+
+                setOrders(paginatedOrders)
+                setCurrentPage(page)
             } else {
                 setCurrentPage(page)
             }
@@ -605,7 +678,15 @@ const OrdersDemo = () => {
 
                 {/* Status Messages */}
                 <div className="mt-2 space-y-1">
-                    {isSearchMode && (
+                    {isSearchMode && isDateFilterMode && (
+                        <div className="text-sm text-gray-600">
+                            {searchLoading || dateFilterLoading
+                                ? "Searching and filtering..."
+                                : `Found ${orders.length} order${orders.length !== 1 ? "s" : ""} for "${search}" in selected date range`}
+                        </div>
+                    )}
+
+                    {isSearchMode && !isDateFilterMode && (
                         <div className="text-sm text-gray-600">
                             {searchLoading
                                 ? "Searching..."
@@ -613,7 +694,7 @@ const OrdersDemo = () => {
                         </div>
                     )}
 
-                    {isDateFilterMode && (
+                    {!isSearchMode && isDateFilterMode && (
                         <div className="text-sm text-gray-600">
                             {dateFilterLoading
                                 ? "Filtering by date..."
@@ -630,14 +711,14 @@ const OrdersDemo = () => {
                 </div>
             </div>
 
-            {loading && (
+            {(loading || initialLoading) && (
                 <div className="flex justify-center items-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    <span className="ml-2">Loading orders...</span>
+                    <span className="ml-2">{initialLoading ? "Loading orders..." : "Loading..."}</span>
                 </div>
             )}
 
-            {!loading && !error && (
+            {!loading && !initialLoading && (
                 <>
                     {/* Responsive Table View for All Devices */}
                     <div className="relative">
@@ -646,25 +727,39 @@ const OrdersDemo = () => {
                             <table className="w-full border-collapse bg-white">
                                 <thead className="bg-gray-50 sticky top-0 z-10">
                                     <tr>
-                                        <th className="border border-gray-300 p-2 sm:p-3 text-center font-semibold text-xs sm:text-sm">Details</th>
+                                        <th className="border border-gray-300 p-2 sm:p-3 text-center font-semibold text-xs sm:text-sm">
+                                            Details
+                                        </th>
                                         <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">ID</th>
-                                        <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">Status</th>
-                                        <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">Date & Time</th>
-                                        <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">Name</th>
-                                        <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">Phone</th>
+                                        <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">
+                                            Status
+                                        </th>
+                                        <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">
+                                            Date & Time
+                                        </th>
+                                        <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">
+                                            Name
+                                        </th>
+                                        <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">
+                                            Phone
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {orders.length === 0 && (
                                         <tr>
                                             <td colSpan={6} className="border border-gray-300 p-8 text-center text-gray-500">
-                                                {isSearchMode ? `No orders found for phone number "${search}"` : "No orders found."}
+                                                {isSearchMode
+                                                    ? `No orders found for phone number "${search}" in this store`
+                                                    : isDateFilterMode
+                                                        ? "No orders found in the selected date range"
+                                                        : "No orders found."}
                                             </td>
                                         </tr>
                                     )}
                                     {orders.map((row) => {
-                                        const rowId = row.id || row.orderId;
-                                        const isCompleting = completingOrders.has(rowId);
+                                        const rowId = row.id || row.orderId
+                                        const isCompleting = completingOrders.has(rowId)
 
                                         return (
                                             <React.Fragment key={rowId}>
@@ -703,7 +798,7 @@ const OrdersDemo = () => {
                                                     </tr>
                                                 )}
                                             </React.Fragment>
-                                        );
+                                        )
                                     })}
                                 </tbody>
                             </table>
@@ -728,8 +823,8 @@ const OrdersDemo = () => {
                                             type="button"
                                             onClick={() => handlePageChange(pageNum)}
                                             className={`px-3.5 py-2 rounded-full transition font-semibold ${currentPage === pageNum
-                                                ? "bg-primary text-white"
-                                                : "bg-white-light text-dark hover:text-white hover:bg-primary"
+                                                    ? "bg-primary text-white"
+                                                    : "bg-white-light text-dark hover:text-white hover:bg-primary"
                                                 }`}
                                         >
                                             {pageNum}
@@ -750,7 +845,6 @@ const OrdersDemo = () => {
                             </ul>
                         )}
                     </div>
-
                 </>
             )}
         </div>
