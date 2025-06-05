@@ -1,4 +1,4 @@
-
+"use client"
 
 import React, { useState, useRef, useEffect } from "react"
 import { Formik, Form, Field, ErrorMessage } from "formik"
@@ -37,6 +37,8 @@ interface PersistedState {
   eligibilityTenure: number | null
   qrUrl: string
   isEligibleCustomer: boolean
+  hasSubmittedOnce: boolean
+  customerId: string | null
 }
 
 const initialValues: FormValues = {
@@ -71,6 +73,8 @@ const EligibilityCheckForm = () => {
   const [isOtpVerified, setIsOtpVerified] = useState(false)
   const [isCustomerNotEligible, setIsCustomerNotEligible] = useState(false)
   const [isEligibleCustomer, setIsEligibleCustomer] = useState(false)
+  const [hasSubmittedOnce, setHasSubmittedOnce] = useState(false)
+  const [customerId, setCustomerId] = useState<string | null>(null)
 
   // Loading states
   const [isLoadingOtp, setIsLoadingOtp] = useState(false)
@@ -97,6 +101,8 @@ const EligibilityCheckForm = () => {
         setEligibilityTenure(parsedState.eligibilityTenure)
         setQrUrl(parsedState.qrUrl)
         setIsEligibleCustomer(parsedState.isEligibleCustomer || false)
+        setHasSubmittedOnce(parsedState.hasSubmittedOnce || false)
+        setCustomerId(parsedState.customerId || null)
 
         // If we're on step 4 and have eligibility data, mark as verified
         if (parsedState.step === 4 && parsedState.eligibilityAmount) {
@@ -121,9 +127,22 @@ const EligibilityCheckForm = () => {
       eligibilityTenure,
       qrUrl,
       isEligibleCustomer,
+      hasSubmittedOnce,
+      customerId,
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave))
-  }, [step, formValues, phoneVerified, eligibilityAmount, maxAmount, eligibilityTenure, qrUrl, isEligibleCustomer])
+  }, [
+    step,
+    formValues,
+    phoneVerified,
+    eligibilityAmount,
+    maxAmount,
+    eligibilityTenure,
+    qrUrl,
+    isEligibleCustomer,
+    hasSubmittedOnce,
+    customerId,
+  ])
 
   // Clear persisted state and reset all states
   const clearPersistedState = () => {
@@ -141,6 +160,8 @@ const EligibilityCheckForm = () => {
     setIsOtpVerified(false)
     setIsCustomerNotEligible(false)
     setIsEligibleCustomer(false)
+    setHasSubmittedOnce(false)
+    setCustomerId(null)
   }
 
   // Reset states when starting new application
@@ -213,13 +234,11 @@ const EligibilityCheckForm = () => {
       })
 
       const otpSent = await sendOtpForEligibilityCheck({ mobileNumber: values.mobileNumber })
-      // console.log("🚀 ~ handlePhoneSubmit ~ otpSent:", otpSent)
       if (otpSent) {
         setStep(2)
       }
     } catch (error) {
       console.error("Error sending OTP:", error)
-      // alert("Failed to send OTP. Please try again.")
       setOtpError("Failed to send OTP. Please try again.")
     } finally {
       setIsLoadingOtp(false)
@@ -228,7 +247,6 @@ const EligibilityCheckForm = () => {
 
   const handleOtpSubmit = async (values: OtpFormValues) => {
     const otpString = values.otp.join("")
-    // console.log("🚀 ~ handleOtpSubmit ~ otpString:", otpString)
 
     setIsVerifyingOtp(true)
     setOtpError("")
@@ -240,8 +258,6 @@ const EligibilityCheckForm = () => {
         otp: otpString,
       })
 
-      // console.log("🚀 ~ handleOtpSubmit ~ res:", res)
-
       if (res.success) {
         setOtpSuccess(true)
         setPhoneVerified(true)
@@ -251,6 +267,7 @@ const EligibilityCheckForm = () => {
           setEligibilityAmount(res.max_eligibility_amount)
           setEligibilityTenure(res.tenure || 12)
           setIsEligibleCustomer(true)
+          setCustomerId(res.customerId)
 
           // Generate QR code for eligible customer
           setIsGeneratingQR(true)
@@ -265,9 +282,6 @@ const EligibilityCheckForm = () => {
             setIsGeneratingQR(false)
           }
         } else {
-          // if(res.message==="Customer eligible with (User already exists in the system.)"){
-
-          // }
           setTimeout(() => {
             setStep(3)
           }, 1500)
@@ -300,80 +314,20 @@ const EligibilityCheckForm = () => {
       dob: `${values.dob_year}-${values.dob_month.padStart(2, "0")}-${values.dob_day.padStart(2, "0")}`,
     }
 
-    // console.log("Final form submission:", finalValues)
+    // Update form values to persist the data
+    setFormValues(values)
     setEligibilityError("")
 
-    // try {
-    //     const response = await eligibleCheckApi(finalValues)
-    //     console.log("Eligibility check response:", response.data)
-
-    //     const customerId = response.data.data._id
-    //     const eligibilityData = response.data.data
-    //     // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData:", eligibilityData)
-    //     if (response.data.success) {
-    //         // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData.max_amount:", eligibilityData.max_amount)
-
-    //         // Set eligibility amount and tenure from API response
-    //         // console.log("eligibilityData.data.max_amount:", eligibilityData.data?.max_amount);
-
-    //         if (eligibilityData.data?.max_amount) {
-    //             setMaxAmount(Number(eligibilityData.data.max_amount)) // convert string to number
-    //         }
-    //         // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData.data?.max_amount:", eligibilityData?.max_amount)
-    //         if (eligibilityData.max_eligibility_amount) {
-    //             setEligibilityAmount(Number(eligibilityData.max_eligibility_amount))
-    //         }
-    //         if (eligibilityData.tenure) {
-    //             setEligibilityTenure(eligibilityData.tenure)
-    //         }
-    //         // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData.eligibility_status:", eligibilityData.eligibility_status)
-    //         if (eligibilityData.eligibility_status === false) {
-    //             setEligibilityError(eligibilityData.message || "Not eligible.")
-    //         }
-    //         // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData.message:", eligibilityData.message)
-    //         // console.log("🚀 ~ handleFinalSubmit ~ customerId:", customerId)
-    //         const order = await createOrderForEligible({ customerId })
-    //         if (order?.data?.order?.qrUrl) {
-    //             // console.log("QR URL:", order.data.order.qrUrl)
-    //             setQrUrl(order.data.order.qrUrl)
-    //         }
-    //         setStep(4)
-    //         // console.log("🚀 ~ handleFinalSubmit ~ order:", order)
-    //     } else {
-    //         const eligibilityData = response.data
-    //         // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData:", eligibilityData)
-
-    //         // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData.message:", eligibilityData.message)
-    //         if (eligibilityData.message) {
-    //             setEligibilityError(eligibilityData.message)
-    //         }
-    //         // setEligibilityError("You are not eligible.")
-    //     }
-    // } catch (error: any) {
-    //     console.error("Eligibility API error:", error)
-
-    //     // Handle specific error cases
-    //     const errorMessage = error?.response?.data?.message || error?.message
-    //     console.log("🚀 ~ handleFinalSubmit ~ errorMessage:", errorMessage)
-
-    //     if (errorMessage?.includes("PAN already exists") || errorMessage?.includes("PAN already in use")) {
-    //         setEligibilityError("This PAN card is already registered with another account.")
-    //     } else if (errorMessage?.includes("not eligible")) {
-    //         setEligibilityError("You are not eligible for a loan at this time.")
-    //     } else {
-    //         setEligibilityError("You are not eligible. This PAN is already in use.")
-    //     }
-    // } finally {
-    //     setIsCheckingEligibility(false)
-    // }
     try {
       const response = await eligibleCheckApi(finalValues)
-      // console.log("Eligibility check response:", response.data);
 
-      const customerId = response.data.data._id
+      const responseCustomerId = response.data.data._id
       const eligibilityData = response.data.data
 
       if (response.data.success) {
+        // Set customer ID for future updates
+        setCustomerId(responseCustomerId)
+
         // Set values from response if present
         if (eligibilityData.data?.max_amount) {
           setMaxAmount(Number(eligibilityData.data.max_amount))
@@ -385,28 +339,27 @@ const EligibilityCheckForm = () => {
           setEligibilityTenure(eligibilityData.tenure)
         }
 
-        //  Handle non-eligible customers with specific message
-        // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData:", eligibilityData)
+        // Handle non-eligible customers with specific message
         if (eligibilityData.eligibility_status === false) {
           if (eligibilityData.message === "User already exists in the system.") {
             // Proceed without setting error
             setMaxAmount(10000)
             setEligibilityAmount(3000)
             setEligibilityTenure(30)
-            // setInterestRate(8);           // You might already have a setter for this
-            // setProcessingFees(3);         // Same here
           } else {
             setEligibilityError(eligibilityData.message || "Not eligible.")
             return // Exit early if not eligible and not the fallback case
           }
         }
 
-        //  Create order irrespectve of eligibility (handled in backend)
-        const order = await createOrderForEligible({ customerId })
+        // Create order irrespective of eligibility (handled in backend)
+        const order = await createOrderForEligible({ customerId: responseCustomerId })
         if (order?.data?.order?.qrUrl) {
           setQrUrl(order.data.order.qrUrl)
         }
 
+        // Mark as submitted once and move to step 4
+        setHasSubmittedOnce(true)
         setStep(4)
       } else {
         const eligibilityData = response.data
@@ -418,7 +371,6 @@ const EligibilityCheckForm = () => {
       console.error("Eligibility API error:", error)
 
       const errorMessage = error?.response?.data?.message || error?.message
-      // console.log("🚀 ~ handleFinalSubmit ~ errorMessage:", errorMessage);
 
       if (errorMessage?.includes("PAN already exists") || errorMessage?.includes("PAN already in use")) {
         setEligibilityError("This PAN card is already registered with another account.")
@@ -453,17 +405,15 @@ const EligibilityCheckForm = () => {
     }
   }
 
-  const handleProceedToStep4 = () => {
-    setStep(4)
-  }
-
   // Full screen loader for step 3
   if (isCheckingEligibility) {
     return (
       <div className="fixed inset-0 bg-white bg-opacity-90 flex flex-col items-center justify-center z-50">
         <div className="text-center space-y-4">
           <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto" />
-          <h3 className="text-xl font-semibold text-gray-800">Checking Your Eligibility</h3>
+          <h3 className="text-xl font-semibold text-gray-800">
+            {hasSubmittedOnce ? "Updating Your Information" : "Checking Your Eligibility"}
+          </h3>
           <p className="text-gray-600">Please wait while we process your information...</p>
         </div>
       </div>
@@ -477,9 +427,9 @@ const EligibilityCheckForm = () => {
           <h4 className="text-lg font-bold text-center">
             {step === 1 && ""}
             {step === 2 && (isEligibleCustomer ? "QR Generated" : "Verify OTP")}
+            {step === 3 && ""}
             {step === 4 && "QR Generated"}
           </h4>
-          {step === 3}
 
           {/* Step 1: Phone Number */}
           {step === 1 && (
@@ -680,7 +630,7 @@ const EligibilityCheckForm = () => {
               {isEligibleCustomer && (
                 <div className="space-y-3">
                   {eligibilityAmount && (
-                    <div className=" p-2 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg text-left">
+                    <div className=" p-2 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg text-center">
                       <div className="space-y-1">
                         <p className="text-gray-700 text-sm">
                           You are eligible for a loan ranging from <br></br>{" "}
@@ -714,7 +664,6 @@ const EligibilityCheckForm = () => {
                             </ul>
                           </div>
                         )}
-
                       </div>
                     </div>
                   )}
@@ -759,19 +708,10 @@ const EligibilityCheckForm = () => {
           {step === 3 && (
             <div className="space-y-3">
               <Formik
-                initialValues={{
-                  ...formValues,
-                  first_name: "",
-                  last_name: "",
-                  pan: "",
-                  pincode: "",
-                  dob_day: "",
-                  dob_month: "",
-                  dob_year: "",
-                  income: "",
-                }}
+                initialValues={formValues}
                 validationSchema={fullFormValidationSchema}
                 onSubmit={handleFinalSubmit}
+                enableReinitialize={true}
               >
                 {({ values, setFieldValue }) => (
                   <Form className="space-y-2">
@@ -965,7 +905,7 @@ const EligibilityCheckForm = () => {
                       type="submit"
                       className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:bg-gray-400 disabled:cursor-not-allowed w-full gap-2 flex items-center justify-center text-sm"
                     >
-                      Check Eligibility
+                      {hasSubmittedOnce ? "Update Information" : "Check Eligibility"}
                     </button>
                   </Form>
                 )}
@@ -981,7 +921,7 @@ const EligibilityCheckForm = () => {
 
                 {/* Enhanced Eligibility Information Display */}
                 {eligibilityAmount && (
-                  <div className="mt-3 p-3 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg text-left">
+                  <div className="mt-3 p-3 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg text-center">
                     <div className="space-y-1">
                       <p className="text-gray-700 text-sm">
                         You are eligible for a loan ranging from <br></br>{" "}
@@ -1009,7 +949,6 @@ const EligibilityCheckForm = () => {
                           </ul>
                         </div>
                       )}
-
                     </div>
                   </div>
                 )}

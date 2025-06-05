@@ -757,7 +757,7 @@ const OrdersDemo = () => {
                                             </td>
                                         </tr>
                                     )}
-                                    {orders.map((row) => {
+                                    {orders?.map((row) => {
                                         const rowId = row.id || row.orderId
                                         const isCompleting = completingOrders.has(rowId)
 
