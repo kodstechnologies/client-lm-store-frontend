@@ -288,8 +288,9 @@ const EligibilityCheckForm = () => {
         }
       } else {
         if (res.message === "Customer not eligible") {
-          setOtpError(res.message)
-          setIsCustomerNotEligible(true)
+          // setOtpError(res.message)
+          // setIsCustomerNotEligible(true)
+          setStep(3)
         } else if (res.message === "Eligibility expired") {
           setOtpError(res.message)
           setTimeout(() => {
@@ -323,6 +324,7 @@ const EligibilityCheckForm = () => {
 
       const responseCustomerId = response.data.data._id
       const eligibilityData = response.data.data
+      console.log("🚀 ~ handleFinalSubmit ~ eligibilityData:", eligibilityData)
 
       if (response.data.success) {
         // Set customer ID for future updates
@@ -348,7 +350,7 @@ const EligibilityCheckForm = () => {
             setEligibilityTenure(30)
           } else {
             setEligibilityError(eligibilityData.message || "Not eligible.")
-            return // Exit early if not eligible and not the fallback case
+            return
           }
         }
 
@@ -363,6 +365,8 @@ const EligibilityCheckForm = () => {
         setStep(4)
       } else {
         const eligibilityData = response.data
+        console.log(eligibilityData.message);
+
         if (eligibilityData.message) {
           setEligibilityError(eligibilityData.message)
         }
@@ -452,7 +456,7 @@ const EligibilityCheckForm = () => {
                 <Form className="space-y-2">
                   <div>
                     <h4 className="text-xl font-bold text-center">Enter Mobile Number</h4>
-                    <label className="block text-sm font-medium mb-1">Mobile Number</label>
+                    {/* <label className="block text-sm font-medium mb-1">Mobile Number</label> */}
                     <Field name="mobileNumber">
                       {({ field, form }: any) => (
                         <input
@@ -508,7 +512,7 @@ const EligibilityCheckForm = () => {
                         </p>
                         <div>
                           <label className="block text-sm font-medium mb-1">Enter 6-digit OTP</label>
-                          <div className="flex justify-between gap-1">
+                          <div className="flex justify-center gap-[8px] sm:gap-[8px] md:gap-[18px]">
                             {[0, 1, 2, 3, 4, 5].map((index) => (
                               <input
                                 key={index}
@@ -517,7 +521,7 @@ const EligibilityCheckForm = () => {
                                 inputMode="numeric"
                                 pattern="[0-9]*"
                                 disabled={isVerifyingOtp || isOtpVerified}
-                                className="w-8 h-8 text-center text-lg border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                                className="w-10 h-10 sm:w-12 sm:h-12 md:w-12 md:h-12 text-center text-lg border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                                 value={values.otp[index] || ""}
                                 onChange={(e) => {
                                   const val = e.target.value.replace(/\D/g, "")
@@ -525,7 +529,6 @@ const EligibilityCheckForm = () => {
                                     const newOtp = [...values.otp]
                                     newOtp[index] = val
                                     setFieldValue("otp", newOtp)
-
                                     if (val && index < 5) {
                                       inputRefs[index + 1].current?.focus()
                                     }
@@ -538,11 +541,7 @@ const EligibilityCheckForm = () => {
                                 }}
                                 onPaste={(e) => {
                                   e.preventDefault()
-                                  const pastedData = e.clipboardData
-                                    .getData("text/plain")
-                                    .replace(/\D/g, "")
-                                    .slice(0, 6)
-
+                                  const pastedData = e.clipboardData.getData("text/plain").replace(/\D/g, "").slice(0, 6)
                                   if (pastedData) {
                                     const newOtp = Array(6).fill("")
                                     for (let i = 0; i < pastedData.length; i++) {
@@ -555,6 +554,7 @@ const EligibilityCheckForm = () => {
                             ))}
                           </div>
                         </div>
+
 
                         {otpError && !isCustomerNotEligible && (
                           <div className="bg-red-50 border border-red-200 text-red-700 px-2 py-1 rounded flex items-center text-sm">
@@ -689,16 +689,15 @@ const EligibilityCheckForm = () => {
                     </div>
                   ) : null}
 
-                  <div className="flex gap-2">
+                  <div className="flex justify-center items-center">
                     <button
-                      type="button"
+                      className="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm"
                       onClick={handleNewApplication}
-                      className="px-3 py-2 border border-gray-300 rounded text-gray-700 bg-white hover:bg-gray-50 text-sm"
                     >
-                      <ArrowLeft className="h-4 w-4 mr-1" />
-                      Back
+                      Start New Application
                     </button>
                   </div>
+
                 </div>
               )}
             </div>

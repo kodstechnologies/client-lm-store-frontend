@@ -165,7 +165,7 @@ const Login = () => {
                 const phone = localStorage.setItem('storePhone', response.storePhone)
                 // console.log("🚀 ~ handleLogin ~ phone:", phone)
 
-                showMessage('Logged in successfully');
+                // showMessage('Logged in successfully');
                 navigate('/merchant/dashboard');
             }
             else {
@@ -219,10 +219,9 @@ const Login = () => {
                             <div className="w-36 h-36">
                                 <img src={Logo || "/placeholder.svg"} alt="" className="w-full h-full object-contain" />
                             </div>
-                            <div className="mb-10">
+                            <div className="mb-6">
                                 <h1 className="text-3xl font-extrabold uppercase !leading-snug text-primary md:text-4xl">Login</h1>
 
-                                <p className="text-base font-bold leading-normal text-white-dark">Enter your OTP to login</p>
                             </div>
 
                             <form className="space-y-5 dark:text-white" onSubmit={formik.handleSubmit}>
@@ -244,7 +243,7 @@ const Login = () => {
                                                 }}
                                                 onBlur={formik.handleBlur}
                                                 maxLength={10}
-                                                style={{ fontSize: '20px', width: '100%', paddingRight: '130px' }}
+                                                style={{ fontSize: '20px', width: '100%', paddingRight: '' }}
                                                 className="form-input ps-10 placeholder:text-white-dark"
                                             />
 
@@ -286,7 +285,10 @@ const Login = () => {
                                     <>
                                         <div className="w-full max-w-md mx-auto px-4">
                                             <label htmlFor="otp" className="block mb-2 font-medium">
-                                                OTP
+                                                Enter OTP sent on {formik.values.contactNo
+                                                    ? `XXXXXX${formik.values.contactNo.slice(-4)}`
+                                                    : ''}
+
                                             </label>
 
                                             <div className="flex justify-between gap-2">

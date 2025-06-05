@@ -6,7 +6,7 @@ import { setPageTitle } from "../../store/themeConfigSlice"
 import { IoIosArrowDropright, IoIosArrowDropdown, IoMdFunnel } from "react-icons/io"
 import { IoMdArrowDropdownCircle } from "react-icons/io"
 import { IoMdArrowDroprightCircle } from "react-icons/io"
-import { Loader2, CheckCircle2, QrCode } from "lucide-react"
+import { Loader2, CheckCircle2, QrCode, AlignCenter } from "lucide-react"
 import QRCode from "react-qr-code"
 import type Flatpickr from "react-flatpickr"
 import FlatpickrReact from "react-flatpickr"
@@ -28,9 +28,11 @@ interface AccordionContentProps {
     qrUrl?: string
     onCompleteOrder?: (orderId: string) => void
     isCompletingOrder?: boolean
+    eligibilityAmount?: number
+    maxAmount?: number
 }
 
-const AccordionContent = ({ status, orderId, qrUrl, onCompleteOrder, isCompletingOrder }: AccordionContentProps) => {
+const AccordionContent = ({ status, orderId, qrUrl, onCompleteOrder, isCompletingOrder, eligibilityAmount, maxAmount }: AccordionContentProps) => {
     const [isExpanded, setIsExpanded] = useState(false)
 
     const toggleExpand = () => setIsExpanded(!isExpanded)
@@ -44,11 +46,30 @@ const AccordionContent = ({ status, orderId, qrUrl, onCompleteOrder, isCompletin
             {status === "QR Generated" && (
                 <div className="space-y-2">
                     {qrUrl ? (
-                        <div className="bg-white rounded-lg  border-gray-200 p-2">
-                            <div className="flex flex-col-2 gap-4 items-center space-y-2">
-                                {/* QR Code Section - centered with minimal spacing */}
-                                <div className="flex flex-col items-center space-y-1">
-                                    <h4 className="text-sm font-semibold text-gray-800">Scan QR</h4>
+                        <div className="bg-white rounded-lg border-gray-200 p-2">
+                            {/* Loan amount message */}
+                            <div className="p-2 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg text-left w-fit">
+                                <p className="text-gray-700 text-sm">
+                                    You are eligible for a loan ranging from <br />
+                                    <>
+                                        <span className="font-semibold text-blue-600">
+                                            ₹{(eligibilityAmount ?? 3000).toLocaleString()}
+                                        </span>
+                                        {" to "}
+                                        <span className="font-semibold text-blue-600">
+                                            ₹{(maxAmount ?? 10000).toLocaleString()}
+                                        </span>
+                                    </>
+                                </p>
+                            </div>
+
+                            {/* QR + Buttons - Left aligned */}
+                            <div className="flex flex-col items-start gap-4 mt-4">
+                                {/* QR Code Section */}
+                                <div className="flex flex-col items-start space-y-1">
+                                    <div className="text-center w-32">
+                                        <h4 className="text-sm font-semibold text-gray-800">Scan QR</h4>
+                                    </div>
                                     <div
                                         className="cursor-pointer hover:opacity-80 transition-opacity"
                                         onClick={handleQRClick}
@@ -56,10 +77,12 @@ const AccordionContent = ({ status, orderId, qrUrl, onCompleteOrder, isCompletin
                                     >
                                         <QRCode value={qrUrl} size={120} />
                                     </div>
-                                    <p className="text-xs text-gray-500 text-center">Tap to open</p>
+                                    <div className="w-32">
+                                        <p className="text-xs text-gray-500 pt-1 text-center">Tap to open</p>
+                                    </div>
                                 </div>
 
-                                {/* Buttons Section - below QR code */}
+                                {/* Buttons Section */}
                                 <div className="flex flex-col space-y-2 w-40">
                                     <button
                                         onClick={() => orderId && onCompleteOrder?.(orderId)}
@@ -92,6 +115,8 @@ const AccordionContent = ({ status, orderId, qrUrl, onCompleteOrder, isCompletin
                         </div>
                     )}
                 </div>
+
+
             )}
 
             {status === "Completed" && (
@@ -280,6 +305,16 @@ const OrdersDemo = () => {
         setError(null)
         try {
             const response = await fetchOrdersByStore()
+            console.log("🚀 ~ loadOrdersWithPagination ~ response:", response)
+            const eligibleAmount = response.data?.[0]?.eligibleAmount;
+            console.log(eligibleAmount);
+            const maxAmount = response.data?.[0]?.max_amount;
+            console.log("🚀 ~ loadOrdersWithPagination ~ maxAmount:", response.data?.[0]?.max_amount)
+
+            // const eligible_amount = response.data.eligibleAmount;
+            // console.log("🚀 ~ loadOrdersWithPagination ~ eligible_amount:", eligible_amount)
+            // const max_amount=response.data.data.max_amount;
+            // console.log("🚀 ~ loadOrdersWithPagination ~ max_amount:", max_amount)
 
             const endDate = new Date()
             const startDate = new Date()
@@ -575,7 +610,7 @@ const OrdersDemo = () => {
     }
 
     return (
-        <div className="mb-8 px-4 sm:px-0">
+        <div className="mb-8 px-2 sm:px-0">
             {/* <ul className="flex space-x-2 rtl:space-x-reverse mb-6">
                 <li>
                     <Link to="/merchant" className="text-primary hover:underline">
@@ -793,6 +828,8 @@ const OrdersDemo = () => {
                                                                 qrUrl={row.qrUrl}
                                                                 onCompleteOrder={handleCompleteOrder}
                                                                 isCompletingOrder={isCompleting}
+                                                                eligibilityAmount={row.eligibleAmount}
+                                                                maxAmount={row.max_amount}
                                                             />
                                                         </td>
                                                     </tr>
@@ -823,8 +860,8 @@ const OrdersDemo = () => {
                                             type="button"
                                             onClick={() => handlePageChange(pageNum)}
                                             className={`px-3.5 py-2 rounded-full transition font-semibold ${currentPage === pageNum
-                                                    ? "bg-primary text-white"
-                                                    : "bg-white-light text-dark hover:text-white hover:bg-primary"
+                                                ? "bg-primary text-white"
+                                                : "bg-white-light text-dark hover:text-white hover:bg-primary"
                                                 }`}
                                         >
                                             {pageNum}
