@@ -1,4 +1,3 @@
-"use client"
 
 import React, { useState, useEffect, useRef } from "react"
 import { useDispatch } from "react-redux"
@@ -6,7 +5,7 @@ import { setPageTitle } from "../../store/themeConfigSlice"
 import { IoIosArrowDropright, IoIosArrowDropdown, IoMdFunnel } from "react-icons/io"
 import { IoMdArrowDropdownCircle } from "react-icons/io"
 import { IoMdArrowDroprightCircle } from "react-icons/io"
-import { Loader2, CheckCircle2, QrCode, AlignCenter } from "lucide-react"
+import { Loader2, CheckCircle2, QrCode } from "lucide-react"
 import QRCode from "react-qr-code"
 import type Flatpickr from "react-flatpickr"
 import FlatpickrReact from "react-flatpickr"
@@ -22,6 +21,19 @@ import { updateOrderById, searchOrderByPhoneNumber, fetchOrdersByStore } from ".
 import { MdArrowBackIos } from "react-icons/md"
 import { MdOutlineArrowForwardIos } from "react-icons/md"
 
+// Define proper TypeScript interfaces
+interface OrderType {
+    id?: string
+    orderId?: string
+    status: string
+    createdAt: string
+    name: string
+    number: string
+    qrUrl?: string
+    eligibleAmount?: number
+    max_amount?: number
+}
+
 interface AccordionContentProps {
     status: string
     orderId?: string
@@ -32,13 +44,23 @@ interface AccordionContentProps {
     maxAmount?: number
 }
 
-const AccordionContent = ({ status, orderId, qrUrl, onCompleteOrder, isCompletingOrder, eligibilityAmount, maxAmount }: AccordionContentProps) => {
+const AccordionContent = ({
+    status,
+    orderId,
+    qrUrl,
+    onCompleteOrder,
+    isCompletingOrder,
+    eligibilityAmount,
+    maxAmount,
+}: AccordionContentProps) => {
     const [isExpanded, setIsExpanded] = useState(false)
 
     const toggleExpand = () => setIsExpanded(!isExpanded)
 
     const handleQRClick = () => {
-        window.open(qrUrl)
+        if (qrUrl) {
+            window.open(qrUrl)
+        }
     }
 
     return (
@@ -51,22 +73,16 @@ const AccordionContent = ({ status, orderId, qrUrl, onCompleteOrder, isCompletin
                             <div className="p-2 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg text-left w-fit">
                                 <p className="text-gray-700 text-sm">
                                     You are eligible for a loan ranging from <br />
-                                    <>
-                                        <span className="font-semibold text-blue-600">
-                                            ₹{(eligibilityAmount ?? 3000).toLocaleString()}
-                                        </span>
-                                        {" to "}
-                                        <span className="font-semibold text-blue-600">
-                                            ₹{(maxAmount ?? 10000).toLocaleString()}
-                                        </span>
-                                    </>
+                                    <span className="font-semibold text-blue-600">₹{(eligibilityAmount ?? 3000).toLocaleString()}</span>
+                                    {" to "}
+                                    <span className="font-semibold text-blue-600">₹{(maxAmount ?? 10000).toLocaleString()}</span>
                                 </p>
                             </div>
 
                             {/* QR + Buttons - Left aligned */}
-                            <div className="flex flex-col items-start gap-4 mt-4">
+                            <div className="flex flex-row items-start gap-4 mt-4">
                                 {/* QR Code Section */}
-                                <div className="flex flex-col items-start space-y-1">
+                                <div className="flex flex-col items-center space-y-1">
                                     <div className="text-center w-32">
                                         <h4 className="text-sm font-semibold text-gray-800">Scan QR</h4>
                                     </div>
@@ -75,7 +91,7 @@ const AccordionContent = ({ status, orderId, qrUrl, onCompleteOrder, isCompletin
                                         onClick={handleQRClick}
                                         title="Click to open QR"
                                     >
-                                        <QRCode value={qrUrl} size={120} />
+                                        <QRCode value={qrUrl} size={120} className="text" />
                                     </div>
                                     <div className="w-32">
                                         <p className="text-xs text-gray-500 pt-1 text-center">Tap to open</p>
@@ -83,11 +99,11 @@ const AccordionContent = ({ status, orderId, qrUrl, onCompleteOrder, isCompletin
                                 </div>
 
                                 {/* Buttons Section */}
-                                <div className="flex flex-col space-y-2 w-40">
+                                <div className="flex flex-col space-y-2 mt-10">
                                     <button
                                         onClick={() => orderId && onCompleteOrder?.(orderId)}
                                         disabled={isCompletingOrder}
-                                        className="w-full bg-green-600 text-white font-semibold py-2 px-3 rounded-lg shadow-md hover:bg-green-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 text-xs"
+                                        className="bg-green-600 text-white font-semibold py-2 px-3 rounded-lg shadow-md hover:bg-green-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 text-xs"
                                     >
                                         {isCompletingOrder ? (
                                             <>
@@ -101,13 +117,14 @@ const AccordionContent = ({ status, orderId, qrUrl, onCompleteOrder, isCompletin
 
                                     <button
                                         onClick={handleQRClick}
-                                        className="w-full bg-blue-600 text-white font-semibold py-2 px-3 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 flex items-center justify-center gap-1 text-xs"
+                                        className="bg-blue-600 text-white font-semibold py-2 px-3 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 flex items-center justify-center gap-1 text-xs"
                                     >
                                         <QrCode className="h-3 w-3" />
                                         Open QR Link
                                     </button>
                                 </div>
                             </div>
+
                         </div>
                     ) : (
                         <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -115,8 +132,6 @@ const AccordionContent = ({ status, orderId, qrUrl, onCompleteOrder, isCompletin
                         </div>
                     )}
                 </div>
-
-
             )}
 
             {status === "Completed" && (
@@ -134,7 +149,12 @@ const AccordionContent = ({ status, orderId, qrUrl, onCompleteOrder, isCompletin
                                 </span>
                             </>
                         ) : (
-                            <></>
+                            <>
+                                <IoMdArrowDroprightCircle className="text-2xl" />
+                                <span className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition duration-300">
+                                    View more
+                                </span>
+                            </>
                         )}
                     </button>
                     {isExpanded && (
@@ -265,12 +285,10 @@ const AccordionContent = ({ status, orderId, qrUrl, onCompleteOrder, isCompletin
 }
 
 const OrdersDemo = () => {
-    const [allOrders, setAllOrders] = useState<any[]>([])
-    const [filteredOrders, setFilteredOrders] = useState<Array<any>>([])
-
-    const dispatch = useDispatch()
-    const [expandedRow, setExpandedRow] = useState<string | null>(null)
-    const [orders, setOrders] = useState<Array<any>>([])
+    // Initialize with proper types and default values
+    const [allOrders, setAllOrders] = useState<OrderType[]>([])
+    const [filteredOrders, setFilteredOrders] = useState<OrderType[]>([])
+    const [orders, setOrders] = useState<OrderType[]>([]) // ✅ Properly typed and initialized
     const [loading, setLoading] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
     const [completingOrders, setCompletingOrders] = useState<Set<string>>(new Set())
@@ -279,7 +297,6 @@ const OrdersDemo = () => {
     const [searchLoading, setSearchLoading] = useState<boolean>(false)
     const [isSearchMode, setIsSearchMode] = useState<boolean>(false)
     const [dateRange, setDateRange] = useState<Date[] | string[]>([])
-    const flatpickrRef = useRef<Flatpickr | null>(null)
     const [isDateFilterMode, setIsDateFilterMode] = useState<boolean>(false)
     const [dateFilterLoading, setDateFilterLoading] = useState<boolean>(false)
     const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState<boolean>(false)
@@ -291,9 +308,20 @@ const OrdersDemo = () => {
     const [totalOrders, setTotalOrders] = useState<number>(0)
     const ordersPerPage = 10
 
+    const dispatch = useDispatch()
+    const [expandedRow, setExpandedRow] = useState<string | null>(null)
+    const flatpickrRef = useRef<Flatpickr | null>(null)
+
     useEffect(() => {
         dispatch(setPageTitle("Orders"))
     }, [dispatch])
+
+    // Helper function to ensure data is always an array
+    const ensureArray = (data: any): OrderType[] => {
+        if (!data) return []
+        if (Array.isArray(data)) return data
+        return [data]
+    }
 
     // Load orders with pagination (100 orders per page from past 30 days)
     const loadOrdersWithPagination = async (page = 1, isInitialLoad = false) => {
@@ -303,29 +331,32 @@ const OrdersDemo = () => {
             setLoading(true)
         }
         setError(null)
+
         try {
             const response = await fetchOrdersByStore()
             console.log("🚀 ~ loadOrdersWithPagination ~ response:", response)
-            const eligibleAmount = response.data?.[0]?.eligibleAmount;
-            console.log(eligibleAmount);
-            const maxAmount = response.data?.[0]?.max_amount;
-            console.log("🚀 ~ loadOrdersWithPagination ~ maxAmount:", response.data?.[0]?.max_amount)
 
-            // const eligible_amount = response.data.eligibleAmount;
-            // console.log("🚀 ~ loadOrdersWithPagination ~ eligible_amount:", eligible_amount)
-            // const max_amount=response.data.data.max_amount;
-            // console.log("🚀 ~ loadOrdersWithPagination ~ max_amount:", max_amount)
+            // Safely extract data and ensure it's an array
+            const responseData = response?.data || response || []
+            const ordersArray = ensureArray(responseData)
+
+            if (ordersArray.length > 0) {
+                const eligibleAmount = ordersArray[0]?.eligibleAmount
+                const maxAmount = ordersArray[0]?.max_amount
+                console.log("Eligible Amount:", eligibleAmount)
+                console.log("Max Amount:", maxAmount)
+            }
 
             const endDate = new Date()
             const startDate = new Date()
             startDate.setDate(startDate.getDate() - 30)
 
-            const filteredOrders = response.data
-                .filter((order: any) => {
+            const filteredOrders = ordersArray
+                .filter((order: OrderType) => {
                     const orderDate = new Date(order.createdAt)
                     return orderDate >= startDate && orderDate <= endDate
                 })
-                .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                .sort((a: OrderType, b: OrderType) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
             setAllOrders(filteredOrders)
 
@@ -342,7 +373,10 @@ const OrdersDemo = () => {
             setCurrentPage(page)
         } catch (err) {
             setError("Failed to load orders.")
-            console.error(err)
+            console.error("Load orders error:", err)
+            // Set empty array on error to prevent map errors
+            setOrders([])
+            setAllOrders([])
         } finally {
             if (isInitialLoad) {
                 setInitialLoading(false)
@@ -359,13 +393,19 @@ const OrdersDemo = () => {
 
         try {
             const response = await searchOrderByPhoneNumber(phoneNumber)
-            setOrders(response || [])
+            console.log("🚀 ~ handleSearch ~ response:", response)
+
+            // Safely handle the response and ensure it's always an array
+            const responseData = response?.data || response || []
+            const searchResults = ensureArray(responseData)
+
+            setOrders(searchResults)
             setTotalPages(1)
-            setTotalOrders(response?.length || 0)
+            setTotalOrders(searchResults.length)
             setCurrentPage(1)
         } catch (err: any) {
             console.error("Search error:", err)
-            // Don't set error state for "no orders found" - let table handle it
+            // Set empty array on error
             setOrders([])
             setTotalPages(1)
             setTotalOrders(0)
@@ -402,10 +442,7 @@ const OrdersDemo = () => {
                 let dataToFilter = allOrders
 
                 // If we're in search mode, we should maintain the search context
-                // and not show date-filtered results from all orders
                 if (isSearchMode) {
-                    // In search mode, if there are no search results,
-                    // date filter should also show no results
                     if (orders.length === 0) {
                         setOrders([])
                         setTotalPages(1)
@@ -415,7 +452,6 @@ const OrdersDemo = () => {
                         setDateFilterLoading(false)
                         return
                     }
-                    // If there are search results, filter those by date
                     dataToFilter = orders
                 }
 
@@ -488,7 +524,7 @@ const OrdersDemo = () => {
         }, 500)
 
         return () => clearTimeout(timeoutId)
-    }, [search, hasInitiallyLoaded]) // Removed isDateFilterMode dependency
+    }, [search, hasInitiallyLoaded])
 
     // Clear success message after 3 seconds
     useEffect(() => {
@@ -611,17 +647,6 @@ const OrdersDemo = () => {
 
     return (
         <div className="mb-8 px-2 sm:px-0">
-            {/* <ul className="flex space-x-2 rtl:space-x-reverse mb-6">
-                <li>
-                    <Link to="/merchant" className="text-primary hover:underline">
-                        Dashboard
-                    </Link>
-                </li>
-                <li className="before:content-['/'] ltr:before:mr-2 rtl:before:ml-2">
-                    <span>Orders</span>
-                </li>
-            </ul> */}
-
             {/* Success Message */}
             {successMessage && (
                 <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 flex items-center gap-2">
@@ -781,67 +806,67 @@ const OrdersDemo = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {orders.length === 0 && (
+                                    {Array.isArray(orders) && orders.length > 0 ? (
+                                        orders.map((row) => {
+                                            const rowId = row.id || row.orderId || `order-${Math.random()}`
+                                            const isCompleting = completingOrders.has(rowId)
+
+                                            return (
+                                                <React.Fragment key={rowId}>
+                                                    {/* Table Row */}
+                                                    <tr className="border border-gray-300 hover:bg-gray-50">
+                                                        <td className="border border-gray-300 p-2 sm:p-3 text-center">
+                                                            <button
+                                                                onClick={() => toggleRow(rowId)}
+                                                                className="text-xl sm:text-2xl focus:outline-none hover:text-primary transition-colors"
+                                                            >
+                                                                {expandedRow === rowId ? <IoIosArrowDropdown /> : <IoIosArrowDropright />}
+                                                            </button>
+                                                        </td>
+                                                        <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">
+                                                            {row.orderId || row.id}
+                                                        </td>
+                                                        <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">
+                                                            {getStatusButton(row.status)}
+                                                        </td>
+                                                        <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">
+                                                            {formatDateTime(row.createdAt)}
+                                                        </td>
+                                                        <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">{row.name}</td>
+                                                        <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">{row.number}</td>
+                                                    </tr>
+
+                                                    {/* Accordion Row */}
+                                                    {expandedRow === rowId && (
+                                                        <tr>
+                                                            <td colSpan={6} className="border border-gray-300 p-0">
+                                                                <AccordionContent
+                                                                    status={row.status}
+                                                                    orderId={rowId}
+                                                                    qrUrl={row.qrUrl}
+                                                                    onCompleteOrder={handleCompleteOrder}
+                                                                    isCompletingOrder={isCompleting}
+                                                                    eligibilityAmount={row.eligibleAmount}
+                                                                    maxAmount={row.max_amount}
+                                                                />
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                                </React.Fragment>
+                                            )
+                                        })
+                                    ) : (
                                         <tr>
-                                            <td colSpan={6} className="border border-gray-300 p-8 text-center text-gray-500">
-                                                {isSearchMode
-                                                    ? `No orders found for phone number "${search}" in this store`
-                                                    : isDateFilterMode
-                                                        ? "No orders found in the selected date range"
-                                                        : "No orders found."}
+                                            <td colSpan={6} className="text-center text-gray-500 py-6">
+                                                No orders found.
                                             </td>
                                         </tr>
                                     )}
-                                    {orders?.map((row) => {
-                                        const rowId = row.id || row.orderId
-                                        const isCompleting = completingOrders.has(rowId)
-
-                                        return (
-                                            <React.Fragment key={rowId}>
-                                                <tr className="border border-gray-300 hover:bg-gray-50">
-                                                    <td className="border border-gray-300 p-2 sm:p-3 text-center">
-                                                        <button
-                                                            onClick={() => toggleRow(rowId)}
-                                                            className="text-xl sm:text-2xl focus:outline-none hover:text-primary transition-colors"
-                                                        >
-                                                            {expandedRow === rowId ? <IoIosArrowDropdown /> : <IoIosArrowDropright />}
-                                                        </button>
-                                                    </td>
-                                                    <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">
-                                                        {row.orderId || row.id}
-                                                    </td>
-                                                    <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">
-                                                        {getStatusButton(row.status)}
-                                                    </td>
-                                                    <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">
-                                                        {formatDateTime(row.createdAt)}
-                                                    </td>
-                                                    <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">{row.name}</td>
-                                                    <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">{row.number}</td>
-                                                </tr>
-                                                {expandedRow === rowId && (
-                                                    <tr>
-                                                        <td colSpan={6} className="border border-gray-300 p-0">
-                                                            <AccordionContent
-                                                                status={row.status}
-                                                                orderId={rowId}
-                                                                qrUrl={row.qrUrl}
-                                                                onCompleteOrder={handleCompleteOrder}
-                                                                isCompletingOrder={isCompleting}
-                                                                eligibilityAmount={row.eligibleAmount}
-                                                                maxAmount={row.max_amount}
-                                                            />
-                                                        </td>
-                                                    </tr>
-                                                )}
-                                            </React.Fragment>
-                                        )
-                                    })}
                                 </tbody>
                             </table>
                         </div>
 
-                        {totalPages && (
+                        {totalPages > 1 && (
                             <ul className="mt-6 mb-10 flex justify-center items-center space-x-1 rtl:space-x-reverse">
                                 <li>
                                     <button

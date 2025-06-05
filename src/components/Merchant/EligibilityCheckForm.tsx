@@ -1,4 +1,3 @@
-"use client"
 
 import React, { useState, useRef, useEffect } from "react"
 import { Formik, Form, Field, ErrorMessage } from "formik"
@@ -116,7 +115,6 @@ const EligibilityCheckForm = () => {
     }
   }, [])
 
-  // Save state to localStorage whenever relevant state changes
   useEffect(() => {
     const stateToSave: PersistedState = {
       step,
@@ -457,6 +455,7 @@ const EligibilityCheckForm = () => {
                   <div>
                     <h4 className="text-xl font-bold text-center">Enter Mobile Number</h4>
                     {/* <label className="block text-sm font-medium mb-1">Mobile Number</label> */}
+                    <br />
                     <Field name="mobileNumber">
                       {({ field, form }: any) => (
                         <input
@@ -465,7 +464,7 @@ const EligibilityCheckForm = () => {
                           inputMode="numeric"
                           pattern="[0-9]*"
                           placeholder="Enter 10 digit mobile number"
-                          className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-[16px]"
                           onChange={(e) => {
                             const val = e.target.value.replace(/\D/g, "")
                             if (val.length <= 10) {
@@ -506,12 +505,13 @@ const EligibilityCheckForm = () => {
                   {({ values, setFieldValue }) => {
                     return (
                       <Form className="space-y-3">
-                        <p className="text-center mb-2 text-sm">
-                          We've sent a verification code to{" "}
+                        <p className="text-center mb-2 text-[16px]">
+                          We have sent a verification code to{" "}
                           <span className="font-semibold">{formValues.mobileNumber}</span>
                         </p>
                         <div>
-                          <label className="block text-sm font-medium mb-1">Enter 6-digit OTP</label>
+                          <label className="block text-[16px] font-medium mb-1 ">Enter 6-digit OTP</label>
+                          <br />
                           <div className="flex justify-center gap-[8px] sm:gap-[8px] md:gap-[18px]">
                             {[0, 1, 2, 3, 4, 5].map((index) => (
                               <input
@@ -609,7 +609,7 @@ const EligibilityCheckForm = () => {
                           </button>
                         </div>
 
-                        <p className="text-center text-xs text-gray-500">
+                        <p className="text-center text-sm text-gray-500">
                           Didn't receive the code?{" "}
                           <button
                             type="button"
@@ -716,13 +716,13 @@ const EligibilityCheckForm = () => {
                   <Form className="space-y-2">
                     {/* Mobile Number (Non-editable) */}
                     <div>
-                      <label className="block text-sm font-medium mb-1">Mobile Number</label>
+                      <label className="block text-[16px] font-medium mb-1 ">Mobile Number</label>
                       <div className="flex items-center">
                         <input
                           value={formValues.mobileNumber}
                           readOnly
                           disabled
-                          className="w-full p-1.5 border border-gray-300 rounded bg-gray-50 text-gray-700 text-sm"
+                          className="w-full p-1.5 border border-gray-300 rounded bg-gray-50 text-gray-700 text-[16px]"
                         />
                         <div className="ml-2 text-blue-600">
                           <CheckCircle2 className="h-5 w-5" />
@@ -732,12 +732,12 @@ const EligibilityCheckForm = () => {
 
                     {/* First Name */}
                     <div>
-                      <label className="block text-sm font-medium mb-1">First Name(As per PAN)</label>
+                      <label className="block text-[16px] font-medium mb-1">First Name(As per PAN)</label>
                       <Field name="first_name">
                         {({ field, form }: any) => (
                           <input
                             {...field}
-                            className="w-full p-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="w-full p-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-[16px]"
                             onChange={(e) => {
                               const val = e.target.value.replace(/[^A-Za-z]/g, "")
                               form.setFieldValue("first_name", val)
@@ -750,12 +750,12 @@ const EligibilityCheckForm = () => {
 
                     {/* Last Name */}
                     <div>
-                      <label className="block text-sm font-medium mb-1">Last Name(As per PAN)</label>
+                      <label className="block text-[16px] font-medium mb-1">Last Name(As per PAN)</label>
                       <Field name="last_name">
                         {({ field, form }: any) => (
                           <input
                             {...field}
-                            className="w-full p-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="w-full p-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-[16px]"
                             onChange={(e) => {
                               const val = e.target.value.replace(/[^A-Za-z]/g, "")
                               form.setFieldValue("last_name", val)
@@ -768,13 +768,13 @@ const EligibilityCheckForm = () => {
 
                     {/* PAN Card */}
                     <div>
-                      <label className="block text-sm font-medium mb-1">PAN Card</label>
+                      <label className="block text-[16px] font-medium mb-1">PAN Card</label>
                       <Field name="pan">
                         {({ field, form }: any) => (
                           <input
                             {...field}
                             maxLength={10}
-                            className="w-full p-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase text-sm"
+                            className="w-full p-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase text-[16px]"
                             onChange={(e) => {
                               const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "")
                               form.setFieldValue("pan", val)
@@ -787,14 +787,14 @@ const EligibilityCheckForm = () => {
 
                     {/* Pincode */}
                     <div>
-                      <label className="block text-sm font-medium mb-1">Pincode</label>
+                      <label className="block text-[16px] font-medium mb-1">Pincode</label>
                       <Field name="pincode">
                         {({ field, form }: any) => (
                           <input
                             {...field}
                             maxLength={6}
                             inputMode="numeric"
-                            className="w-full p-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="w-full p-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-[16px]"
                             onChange={(e) => {
                               const val = e.target.value.replace(/\D/g, "")
                               form.setFieldValue("pincode", val)
@@ -807,12 +807,12 @@ const EligibilityCheckForm = () => {
 
                     {/* Date of Birth */}
                     <div>
-                      <label className="block text-sm font-medium mb-1">Date of Birth</label>
+                      <label className="block text-[16px] font-medium mb-1">Date of Birth</label>
                       <div className="flex gap-1">
                         <Field
                           as="select"
                           name="dob_day"
-                          className="flex-1 p-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                          className="flex-1 p-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-[16px]"
                         >
                           <option value="">Day</option>
                           {[...Array(31)].map((_, i) => (
@@ -825,7 +825,7 @@ const EligibilityCheckForm = () => {
                         <Field
                           as="select"
                           name="dob_month"
-                          className="flex-1 p-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                          className="flex-1 p-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-[16px]"
                         >
                           <option value="">Month</option>
                           {[
@@ -856,7 +856,7 @@ const EligibilityCheckForm = () => {
                                 type="text"
                                 maxLength={4}
                                 placeholder="Year"
-                                className="w-full p-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                className="w-full p-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-[16px]"
                                 onChange={(e) => {
                                   const val = e.target.value.replace(/\D/g, "")
                                   form.setFieldValue("dob_year", val)
@@ -867,20 +867,20 @@ const EligibilityCheckForm = () => {
                         </div>
                       </div>
                       <div className="flex flex-col mt-1">
-                        <ErrorMessage name="dob_day" component="div" className="text-red-500 text-xs" />
-                        <ErrorMessage name="dob_month" component="div" className="text-red-500 text-xs" />
-                        <ErrorMessage name="dob_year" component="div" className="text-red-500 text-xs" />
+                        <ErrorMessage name="dob_day" component="div" className="text-red-500 text-sm" />
+                        <ErrorMessage name="dob_month" component="div" className="text-red-500 text-sm" />
+                        <ErrorMessage name="dob_year" component="div" className="text-red-500 text-sm" />
                       </div>
                     </div>
 
                     {/* Monthly Income */}
                     <div>
-                      <label className="block text-sm font-medium mb-1">Monthly Income (₹)</label>
+                      <label className="block text-[16px] font-medium mb-1">Monthly Income (₹)</label>
                       <Field name="income">
                         {({ field, form }: any) => (
                           <input
                             {...field}
-                            className="w-full p-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="w-full p-1.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-[16px]"
                             inputMode="numeric"
                             onChange={(e) => {
                               const val = e.target.value.replace(/[^0-9]/g, "")
@@ -894,7 +894,7 @@ const EligibilityCheckForm = () => {
 
                     {/* Error Message Display */}
                     {eligibilityError && (
-                      <div className="bg-red-50 border border-red-200 text-red-700 px-2 py-1 rounded flex items-center text-sm">
+                      <div className="bg-red-50 border border-red-200 text-red-700 px-2 py-1 rounded flex items-center text-[16px]">
                         <AlertCircle className="h-4 w-4 mr-1" />
                         <span>{eligibilityError}</span>
                       </div>

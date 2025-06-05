@@ -23,6 +23,7 @@ import LoanApplyFormDemo from '../components/Merchant/Orders/LoanApplyFormDemo';
 import SeltEnteredCustomer from '../components/Merchant/Orders/SeltEnteredCustomer';
 import MerchantDashboardDemo from '../pages/Merchant/MerchantDashboardDemo';
 import EligibilityCheckPage from '../components/Merchant/EligibilityCheckPage';
+import CreateOrderFormWrapper from './wrapper';
 const KnowledgeBase = lazy(() => import('../pages/Pages/KnowledgeBase'));
 const ContactUsBoxed = lazy(() => import('../pages/Pages/ContactUsBoxed'));
 const ContactUsCover = lazy(() => import('../pages/Pages/ContactUsCover'));
@@ -109,11 +110,7 @@ const routes = [
     },
     {
         path: '/merchant/create-order-form',
-        element: (
-            <MerchantProtected>
-                <EligibilityCheckPage />
-            </MerchantProtected>
-        ),
+        element: <CreateOrderFormWrapper />,
     },
     {
         path: '/merchant/setcustomer/add-product-details',
