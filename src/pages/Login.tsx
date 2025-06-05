@@ -309,6 +309,23 @@ const Login = () => {
                                                             maxLength={1}
                                                             className="border rounded text-center text-lg p-2 w-9 sm:w-10"
                                                         />
+//                                                         <input
+//   key={index}
+//   id={`otp${index}`}
+//   name={`otp${index}`}
+//   type="text" // instead of "password" to allow numeric keyboard
+//   inputMode="numeric" // triggers numeric keyboard on mobile
+//   pattern="[0-9]*" // hint for numeric input
+//   ref={(el: HTMLInputElement | null) => {
+//     if (el) inputRefs.current[index] = el;
+//   }}
+//   value={formik.values[key]}
+//   onChange={(e) => handleChange(e, index)}
+//   onKeyDown={(e) => handleKeyDown(e, index)}
+//   maxLength={1}
+//   className="border rounded text-center text-lg p-2 w-9 sm:w-10"
+// />
+
                                                     );
                                                 })}
                                             </div>

@@ -140,7 +140,7 @@ const AccordionContent = ({
                         <CheckCircle2 className="h-5 w-5" />
                         <span>Order Completed Successfully!</span>
                     </div>
-                    <button className="flex items-center gap-2 text-blue-500 font-semibold" onClick={toggleExpand}>
+                    {/* <button className="flex items-center gap-2 text-blue-500 font-semibold" onClick={toggleExpand}>
                         {isExpanded ? (
                             <>
                                 <IoMdArrowDropdownCircle className="text-2xl" />
@@ -162,11 +162,11 @@ const AccordionContent = ({
                             <CompletedStatusEmiDetails />
                             <ProductDetailsStatic />
                         </div>
-                    )}
+                    )} */}
                 </div>
             )}
 
-            {status === "Processed" && (
+            {/* {status === "Processed" && (
                 <div className="space-y-4">
                     <EmiDetails />
                     <button className="flex items-center gap-2 text-blue-500 font-semibold" onClick={toggleExpand}>
@@ -279,7 +279,7 @@ const AccordionContent = ({
                         </div>
                     )}
                 </div>
-            )}
+            )} */}
         </div>
     )
 }
