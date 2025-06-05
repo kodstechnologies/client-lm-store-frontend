@@ -313,9 +313,9 @@ const Login = () => {
                                                             key={index}
                                                             id={`otp${index}`}
                                                             name={`otp${index}`}
-                                                            type="text" 
-                                                            inputMode="numeric"
-                                                            pattern="[0-9]*" 
+                                                            type="password" 
+                                                            inputMode="numeric" 
+                                                            pattern="[0-9]*"
                                                             ref={(el: HTMLInputElement | null) => {
                                                                 if (el) inputRefs.current[index] = el;
                                                             }}
@@ -325,6 +325,7 @@ const Login = () => {
                                                             maxLength={1}
                                                             className="border rounded text-center text-lg p-2 w-9 sm:w-10"
                                                         />
+
 
                                                     );
                                                 })}

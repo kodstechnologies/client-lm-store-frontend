@@ -691,7 +691,7 @@ const EligibilityCheckForm = () => {
 
                   <div className="flex justify-center items-center">
                     <button
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm"
+                      className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:bg-gray-400 disabled:cursor-not-allowed w-full gap-2 flex items-center justify-center text-sm" 
                       onClick={handleNewApplication}
                     >
                       Start New Application
@@ -906,6 +906,14 @@ const EligibilityCheckForm = () => {
                     >
                       {hasSubmittedOnce ? "Update Information" : "Check Eligibility"}
                     </button>
+                    <div className="flex justify-center items-center">
+                      <button
+                        className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:bg-gray-400 disabled:cursor-not-allowed w-full gap-2 flex items-center justify-center text-sm"
+                        onClick={handleNewApplication}
+                      >
+                        Start New Application
+                      </button>
+                    </div>
                   </Form>
                 )}
               </Formik>
