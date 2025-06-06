@@ -66,8 +66,10 @@ const TrainingVideos = () => {
                         <div key={index} className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-4 flex flex-col items-center text-center">
                             <span className="text-4xl">📄</span>
                             <h5 className="text-lg font-bold text-gray-800 dark:text-white mt-3">{doc.name}</h5>
-                            <a href={doc.file} download className="mt-2 text-blue-600 dark:text-blue-400 font-medium hover:underline">
-                                📥 Download PDF
+
+                            <a href={doc.file} target='_blank' className="mt-2 text-blue-600 dark:text-blue-400 font-medium hover:underline">
+
+                                👁️  View PDF
                             </a>
                         </div>
                     ))}

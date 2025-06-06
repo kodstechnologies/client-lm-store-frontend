@@ -27,6 +27,7 @@ interface OrderType {
     orderId?: string
     status: string
     createdAt: string
+    updatedAt:string,
     name: string
     number: string
     qrUrl?: string
@@ -830,7 +831,7 @@ const OrdersDemo = () => {
                                                             {getStatusButton(row.status)}
                                                         </td>
                                                         <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">
-                                                            {formatDateTime(row.createdAt)}
+                                                            {formatDateTime(row.updatedAt)}
                                                         </td>
                                                         <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">{row.name}</td>
                                                         <td className="border border-gray-300 p-2 sm:p-3 text-xs sm:text-sm">{row.number}</td>

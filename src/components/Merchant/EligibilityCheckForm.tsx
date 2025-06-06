@@ -254,55 +254,85 @@ const EligibilityCheckForm = () => {
       const res = await verifyOtpForEligibilityCheck({
         mobileNumber: formValues.mobileNumber,
         otp: otpString,
-      })
+      });
+
+      console.log("🚀 ~ handleOtpSubmit ~ res:", res.Order);
 
       if (res.success) {
-        setOtpSuccess(true)
-        setPhoneVerified(true)
-        setIsOtpVerified(true)
+        setOtpSuccess(true);
+        setPhoneVerified(true);
+        setIsOtpVerified(true);
 
+        // CASE 1: Eligible - New Customer or not completed before
         if (res.max_eligibility_amount) {
-          setEligibilityAmount(res.max_eligibility_amount)
-          setEligibilityTenure(res.tenure || 12)
-          setIsEligibleCustomer(true)
-          setCustomerId(res.customerId)
+          setEligibilityAmount(res.max_eligibility_amount);
+          setEligibilityTenure(res.tenure || 12);
+          setIsEligibleCustomer(true);
+          setCustomerId(res.customerId);
 
           // Generate QR code for eligible customer
-          setIsGeneratingQR(true)
+          setIsGeneratingQR(true);
           try {
-            const order = await createOrderForEligible({ customerId: res.customerId })
+            const order = await createOrderForEligible({ customerId: res.customerId });
             if (order?.data?.order?.qrUrl) {
-              setQrUrl(order.data.order.qrUrl)
+              setQrUrl(order.data.order.qrUrl);
             }
+            console.log("🚀 ~ handleOtpSubmit ~ order:", order);
           } catch (error) {
-            console.error("Error creating order for eligible customer:", error)
+            console.error("Error creating order for eligible customer:", error);
           } finally {
-            setIsGeneratingQR(false)
+            setIsGeneratingQR(false);
           }
-        } else {
-          setTimeout(() => {
-            setStep(3)
-          }, 1500)
+
+          // CASE 2: Already has a completed order — Returning customer
+
         }
+        //  else if (res.Order?.status === "Completed") {
+        //   console.log("🚀 Returning customer with completed order");
+        //   setIsEligibleCustomer(true);
+        //   setEligibilityAmount(res.Order.eligibleAmount);
+        //   setEligibilityTenure(res.Order.tenure || 12);
+        //   setCustomerId(res.Order.customerId);
+
+        //   if (res.Order.qrUrl) {
+        //     setQrUrl(res.Order.qrUrl);
+        //     console.log("✅ Setting QR URL:", res.Order.qrUrl);
+        //   } else {
+        //     console.warn("❌ No QR URL in completed order");
+        //   
+
+        //   setIsGeneratingQR(false); // Do this AFTER qrUrl is set
+        // }
+
+        else {
+          console.log("ORDER STSTUS", res.Order?.status);
+
+          setTimeout(() => {
+            setStep(3);
+          }, 1500);
+        }
+
       } else {
         if (res.message === "Customer not eligible") {
-          // setOtpError(res.message)
-          // setIsCustomerNotEligible(true)
-          setStep(3)
+          setStep(3);
         } else if (res.message === "Eligibility expired") {
-          setOtpError(res.message)
+          setOtpError(res.message);
           setTimeout(() => {
-            setStep(3)
-          }, 1500)
+            setStep(3);
+          }, 1500);
         }
       }
     } catch (error: any) {
-      const errMsg = error?.response?.data?.message || error?.message || "Something went wrong during OTP verification."
-      console.error("OTP verification failed:", errMsg)
-      setOtpError(errMsg)
+      const errMsg =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong during OTP verification.";
+      console.error("OTP verification failed:", errMsg);
+      setOtpError(errMsg);
     } finally {
-      setIsVerifyingOtp(false)
+      setIsVerifyingOtp(false);
     }
+
   }
 
   const handleFinalSubmit = async (values: FormValues) => {
@@ -691,7 +721,7 @@ const EligibilityCheckForm = () => {
 
                   <div className="flex justify-center items-center">
                     <button
-                      className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:bg-gray-400 disabled:cursor-not-allowed w-full gap-2 flex items-center justify-center text-sm" 
+                      className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:bg-gray-400 disabled:cursor-not-allowed w-full gap-2 flex items-center justify-center text-sm"
                       onClick={handleNewApplication}
                     >
                       Start New Application
@@ -899,21 +929,23 @@ const EligibilityCheckForm = () => {
                         <span>{eligibilityError}</span>
                       </div>
                     )}
+                    {/* <div className="flex gap-2"> */}
 
-                    <button
-                      type="submit"
-                      className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:bg-gray-400 disabled:cursor-not-allowed w-full gap-2 flex items-center justify-center text-sm"
-                    >
-                      {hasSubmittedOnce ? "Update Information" : "Check Eligibility"}
-                    </button>
-                    <div className="flex justify-center items-center">
                       <button
+                        type="submit"
                         className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:bg-gray-400 disabled:cursor-not-allowed w-full gap-2 flex items-center justify-center text-sm"
+                      >
+                        {hasSubmittedOnce ? "Update Information" : "Check Eligibility"}
+                      </button>
+                      <button
+                        className="px-3 py-2 bg-white text-back rounded hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:bg-gray-400 disabled:cursor-not-allowed w-full gap-2 flex items-center justify-center text-sm border-gray-500 border"
                         onClick={handleNewApplication}
                       >
-                        Start New Application
+                        <ArrowLeft className="h-4 w-4 mr-1" />
+
+                       Back
                       </button>
-                    </div>
+                    {/* </div> */}
                   </Form>
                 )}
               </Formik>
@@ -973,7 +1005,7 @@ const EligibilityCheckForm = () => {
                   )}
 
                   <button
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm"
+                    className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:bg-gray-400 disabled:cursor-not-allowed w-full gap-2 flex items-center justify-center text-sm"
                     onClick={handleNewApplication}
                   >
                     Start New Application
