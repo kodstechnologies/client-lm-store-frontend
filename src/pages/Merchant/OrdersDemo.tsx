@@ -27,7 +27,7 @@ interface OrderType {
     orderId?: string
     status: string
     createdAt: string
-    updatedAt:string,
+    updatedAt: string,
     name: string
     number: string
     qrUrl?: string
@@ -335,7 +335,7 @@ const OrdersDemo = () => {
 
         try {
             const response = await fetchOrdersByStore()
-            console.log("🚀 ~ loadOrdersWithPagination ~ response:", response)
+            // console.log("🚀 ~ loadOrdersWithPagination ~ response:", response)
 
             // Safely extract data and ensure it's an array
             const responseData = response?.data || response || []
@@ -344,8 +344,8 @@ const OrdersDemo = () => {
             if (ordersArray.length > 0) {
                 const eligibleAmount = ordersArray[0]?.eligibleAmount
                 const maxAmount = ordersArray[0]?.max_amount
-                console.log("Eligible Amount:", eligibleAmount)
-                console.log("Max Amount:", maxAmount)
+                // console.log("Eligible Amount:", eligibleAmount)
+                // console.log("Max Amount:", maxAmount)
             }
 
             const endDate = new Date()
@@ -357,7 +357,7 @@ const OrdersDemo = () => {
                     const orderDate = new Date(order.createdAt)
                     return orderDate >= startDate && orderDate <= endDate
                 })
-                .sort((a: OrderType, b: OrderType) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            // .sort((a: OrderType, b: OrderType) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
             setAllOrders(filteredOrders)
 
@@ -394,7 +394,7 @@ const OrdersDemo = () => {
 
         try {
             const response = await searchOrderByPhoneNumber(phoneNumber)
-            console.log("🚀 ~ handleSearch ~ response:", response)
+            // console.log("🚀 ~ handleSearch ~ response:", response)
 
             // Safely handle the response and ensure it's always an array
             const responseData = response?.data || response || []
@@ -665,11 +665,20 @@ const OrdersDemo = () => {
                     <div className="relative w-full sm:w-[400px]">
                         <input
                             type="text"
+                            inputMode="numeric"
+                            pattern="\d*"
+                            maxLength={10}
                             className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="Search by Phone Number"
                             value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                if (/^\d{0,10}$/.test(value)) {
+                                    setSearch(value);
+                                }
+                            }}
                         />
+
                         <svg
                             className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-500 w-4 h-4 pointer-events-none"
                             fill="none"

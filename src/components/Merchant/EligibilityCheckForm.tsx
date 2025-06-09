@@ -10,6 +10,7 @@ import {
   sendOtpForEligibilityCheck,
   verifyOtpForEligibilityCheck,
 } from "../../api"
+import { showMessage } from "../common/ShowMessage"
 
 interface FormValues {
   mobileNumber: string
@@ -32,7 +33,7 @@ interface PersistedState {
   formValues: FormValues
   phoneVerified: boolean
   eligibilityAmount: number | string | null
-  maxAmount: number | string | null
+  maxAmount: number | string | 0
   eligibilityTenure: number | null
   qrUrl: string
   isEligibleCustomer: boolean
@@ -65,7 +66,7 @@ const EligibilityCheckForm = () => {
   const [otpError, setOtpError] = useState("")
   const [otpSuccess, setOtpSuccess] = useState(false)
   const [eligibilityAmount, setEligibilityAmount] = useState<number | string | null>(null)
-  const [maxAmount, setMaxAmount] = useState<number | string | null>(null)
+  const [maxAmount, setMaxAmount] = useState<number | string>(0);
   const [eligibilityTenure, setEligibilityTenure] = useState<number | null>(null)
   const [qrUrl, setQrUrl] = useState<string>("")
   const [eligibilityError, setEligibilityError] = useState("")
@@ -150,7 +151,7 @@ const EligibilityCheckForm = () => {
     setPhoneVerified(false)
     setQrUrl("")
     setEligibilityAmount(null)
-    setMaxAmount(null)
+    setMaxAmount(0)
     setEligibilityTenure(null)
     setOtpError("")
     setOtpSuccess(false)
@@ -161,12 +162,17 @@ const EligibilityCheckForm = () => {
     setHasSubmittedOnce(false)
     setCustomerId(null)
   }
-
+  useEffect(() => {
+    // Clear localStorage and reset state on mount
+    clearPersistedState();
+    //  console.log("Local storage",localStorage.getItem(STORAGE_KEY))
+  }, []); // Empty dependency array ensures this runs only on mount
   // Reset states when starting new application
+  
   const handleNewApplication = () => {
     clearPersistedState()
     setEligibilityAmount(null)
-    setMaxAmount(null)
+    setMaxAmount(0)
     setOtpSuccess(false)
     setOtpError("")
   }
@@ -220,7 +226,7 @@ const EligibilityCheckForm = () => {
     setOtpError("")
     setOtpSuccess(false)
     setEligibilityAmount(null)
-    setMaxAmount(null)
+    setMaxAmount(0)
     setIsOtpVerified(false)
     setIsCustomerNotEligible(false)
     setIsEligibleCustomer(false)
@@ -256,7 +262,7 @@ const EligibilityCheckForm = () => {
         otp: otpString,
       });
 
-      console.log("🚀 ~ handleOtpSubmit ~ res:", res.Order);
+      // console.log("🚀 ~ handleOtpSubmit ~ res:", res);
 
       if (res.success) {
         setOtpSuccess(true);
@@ -264,10 +270,13 @@ const EligibilityCheckForm = () => {
         setIsOtpVerified(true);
 
         // CASE 1: Eligible - New Customer or not completed before
+
         if (res.max_eligibility_amount) {
+          // console.log("hi");
+
           setEligibilityAmount(res.max_eligibility_amount);
           setEligibilityTenure(res.tenure || 12);
-          setIsEligibleCustomer(true);
+          setIsEligibleCustomer(true || false);
           setCustomerId(res.customerId);
 
           // Generate QR code for eligible customer
@@ -275,9 +284,9 @@ const EligibilityCheckForm = () => {
           try {
             const order = await createOrderForEligible({ customerId: res.customerId });
             if (order?.data?.order?.qrUrl) {
-              setQrUrl(order.data.order.qrUrl);
+              setQrUrl(order.data.order.qrUrl); //qr
             }
-            console.log("🚀 ~ handleOtpSubmit ~ order:", order);
+            // console.log("🚀 ~ handleOtpSubmit ~ order:", order);
           } catch (error) {
             console.error("Error creating order for eligible customer:", error);
           } finally {
@@ -287,25 +296,26 @@ const EligibilityCheckForm = () => {
           // CASE 2: Already has a completed order — Returning customer
 
         }
-        //  else if (res.Order?.status === "Completed") {
-        //   console.log("🚀 Returning customer with completed order");
-        //   setIsEligibleCustomer(true);
-        //   setEligibilityAmount(res.Order.eligibleAmount);
-        //   setEligibilityTenure(res.Order.tenure || 12);
-        //   setCustomerId(res.Order.customerId);
+        else if (res.Order?.status === "QR Generated") {
+          // console.log("🚀 Returning customer with completed order");
+          setIsEligibleCustomer(true);
+          setEligibilityAmount(res.Order.eligibleAmount || 3000);
+          setMaxAmount(10000)
+          setEligibilityTenure(res.Order.tenure || 12);
+          setCustomerId(res.Order.customerId);
 
-        //   if (res.Order.qrUrl) {
-        //     setQrUrl(res.Order.qrUrl);
-        //     console.log("✅ Setting QR URL:", res.Order.qrUrl);
-        //   } else {
-        //     console.warn("❌ No QR URL in completed order");
-        //   
+          if (res.Order.qrUrl) {
+            setQrUrl(res.Order.qrUrl);
+            // console.log("✅ Setting QR URL:", res.Order.qrUrl);
+          } else {
+            console.warn("❌ No QR URL in completed order");
 
-        //   setIsGeneratingQR(false); // Do this AFTER qrUrl is set
-        // }
 
+            setIsGeneratingQR(false); // Do this AFTER qrUrl is set
+          }
+        }
         else {
-          console.log("ORDER STSTUS", res.Order?.status);
+          // console.log("ORDER STSTUS", res.Order?.status);
 
           setTimeout(() => {
             setStep(3);
@@ -352,15 +362,15 @@ const EligibilityCheckForm = () => {
 
       const responseCustomerId = response.data.data._id
       const eligibilityData = response.data.data
-      console.log("🚀 ~ handleFinalSubmit ~ eligibilityData:", eligibilityData)
+      // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData:", eligibilityData)
 
       if (response.data.success) {
-        // Set customer ID for future updates
         setCustomerId(responseCustomerId)
 
         // Set values from response if present
         if (eligibilityData.data?.max_amount) {
-          setMaxAmount(Number(eligibilityData.data.max_amount))
+          // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData.data?.max_amount:", eligibilityData.data?.max_amount)
+          setMaxAmount(Number(eligibilityData.data.max_amount) || 10000)
         }
         if (eligibilityData.max_eligibility_amount) {
           setEligibilityAmount(Number(eligibilityData.max_eligibility_amount))
@@ -393,7 +403,7 @@ const EligibilityCheckForm = () => {
         setStep(4)
       } else {
         const eligibilityData = response.data
-        console.log(eligibilityData.message);
+        // console.log(eligibilityData.message);
 
         if (eligibilityData.message) {
           setEligibilityError(eligibilityData.message)
@@ -409,7 +419,7 @@ const EligibilityCheckForm = () => {
       } else if (errorMessage?.includes("not eligible")) {
         setEligibilityError("You are not eligible for a loan at this time.")
       } else {
-        setEligibilityError("You are not eligible. This PAN is already in use.")
+        setEligibilityError(error?.response?.data?.message)
       }
     } finally {
       setIsCheckingEligibility(false)
@@ -422,16 +432,16 @@ const EligibilityCheckForm = () => {
     setOtpError("")
     setOtpSuccess(false)
     setEligibilityAmount(null)
-    setMaxAmount(null)
+    setMaxAmount(0)
     setIsCustomerNotEligible(false)
     setIsEligibleCustomer(false)
 
     try {
       await sendOtpForEligibilityCheck({ mobileNumber: formValues.mobileNumber })
-      alert("New OTP sent!")
+      showMessage("OTP Sent Successfully")
     } catch (error) {
       console.error("Error resending OTP:", error)
-      alert("Failed to resend OTP. Please try again.")
+      // alert("Failed to resend OTP. Please try again.")
     } finally {
       setIsResendingOtp(false)
     }
@@ -643,7 +653,11 @@ const EligibilityCheckForm = () => {
                           Didn't receive the code?{" "}
                           <button
                             type="button"
-                            onClick={handleResendOtp}
+                            onClick={() => {
+                              handleResendOtp();
+                              setFieldValue("otp", ["", "", "", "", "", ""]);
+                              inputRefs[0]?.current?.focus();
+                            }}
                             disabled={isResendingOtp || isOtpVerified}
                             className="text-blue-600 hover:text-blue-700 disabled:opacity-50"
                           >
@@ -664,7 +678,7 @@ const EligibilityCheckForm = () => {
                       <div className="space-y-1">
                         <p className="text-gray-700 text-sm">
                           You are eligible for a loan ranging from <br></br>{" "}
-                          {maxAmount && eligibilityAmount ? (
+                          {maxAmount || eligibilityAmount ? (
                             <>
                               <span className="font-semibold text-blue-600 ">
                                 ₹{eligibilityAmount.toLocaleString()}
@@ -679,7 +693,7 @@ const EligibilityCheckForm = () => {
                                 ₹{eligibilityAmount?.toLocaleString()}
                               </span>
                               {" to "}
-                              <span className="font-semibold text-blue-600">₹10000</span>
+                              <span className="font-semibold text-blue-600">{maxAmount}</span>
                             </>
                           )}
                         </p>
@@ -931,20 +945,20 @@ const EligibilityCheckForm = () => {
                     )}
                     {/* <div className="flex gap-2"> */}
 
-                      <button
-                        type="submit"
-                        className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:bg-gray-400 disabled:cursor-not-allowed w-full gap-2 flex items-center justify-center text-sm"
-                      >
-                        {hasSubmittedOnce ? "Update Information" : "Check Eligibility"}
-                      </button>
-                      <button
-                        className="px-3 py-2 bg-white text-back rounded hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:bg-gray-400 disabled:cursor-not-allowed w-full gap-2 flex items-center justify-center text-sm border-gray-500 border"
-                        onClick={handleNewApplication}
-                      >
-                        <ArrowLeft className="h-4 w-4 mr-1" />
+                    <button
+                      type="submit"
+                      className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:bg-gray-400 disabled:cursor-not-allowed w-full gap-2 flex items-center justify-center text-sm"
+                    >
+                      {hasSubmittedOnce ? "Update Information" : "Check Eligibility"}
+                    </button>
+                    <button
+                      className="px-3 py-2 bg-white text-back rounded hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:bg-gray-400 disabled:cursor-not-allowed w-full gap-2 flex items-center justify-center text-sm border-gray-500 border"
+                      onClick={handleNewApplication}
+                    >
+                      <ArrowLeft className="h-4 w-4 mr-1" />
 
-                       Back
-                      </button>
+                      Back
+                    </button>
                     {/* </div> */}
                   </Form>
                 )}
@@ -968,7 +982,7 @@ const EligibilityCheckForm = () => {
                           <>
                             <span className="font-semibold text-blue-600">₹{eligibilityAmount.toLocaleString()}</span>
                             {" to "}
-                            <span className="font-semibold text-blue-600">₹{maxAmount.toLocaleString()}</span>
+                            <span className="font-semibold text-blue-600">₹{maxAmount}</span>
                           </>
                         ) : (
                           <>
