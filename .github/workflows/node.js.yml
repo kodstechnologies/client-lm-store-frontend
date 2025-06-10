@@ -44,5 +44,5 @@ jobs:
     - name: Serve React build with PM2
       run: |
         pm2 delete FrontendServer || true
-        pm2 serve build --name FrontendServer --watch
+        pm2 serve dist --name FrontendServer --watch
         pm2 save
