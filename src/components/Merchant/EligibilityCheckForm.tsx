@@ -285,65 +285,71 @@ const EligibilityCheckForm = () => {
       if (res?.Order?.status === "QR Generated") {
         setQrUrl(res.Order.qrUrl)
         setStep(4)
-      }else{
+      } else {
 
-      try {
-        // Only fetch customer details if we have a valid customerId
-        const customerIdToUse = res.Order?.customerId || res.customerId
-        console.log("🚀 ~ handleOtpSubmit ~ customerIdToUse:", customerIdToUse)
-        if (customerIdToUse) {
-          const customerDetailsResponse = await fetchCustomerDetails(customerIdToUse)
-          console.log("🚀 ~ handleOtpSubmit ~ customerDetailsResponse:", customerDetailsResponse)
+        try {
+          // Only fetch customer details if we have a valid customerId
+          const customerIdToUse = res.Order?.customerId || res.customerId
+          console.log("🚀 ~ handleOtpSubmit ~ customerIdToUse:", customerIdToUse)
+          if (customerIdToUse) {
+            const customerDetailsResponse = await fetchCustomerDetails(customerIdToUse)
+            console.log("🚀 ~ handleOtpSubmit ~ customerDetailsResponse:", customerDetailsResponse)
 
-          let customer = customerDetailsResponse?.data?.data || customerDetailsResponse?.data || customerDetailsResponse
-          console.log("🚀 ~ handleOtpSubmit ~ customer:", customer)
+            let customer = customerDetailsResponse?.data?.data || customerDetailsResponse?.data || customerDetailsResponse
+            console.log("🚀 ~ handleOtpSubmit ~ customer:", customer)
 
 
-          // If it's an array, extract the first item
-          if (Array.isArray(customer)) {
-            customer = customer[0]
-          }
-
-          if (customer && typeof customer === "object") {
-            const dobField = customer.dob || customer.dateOfBirth || customer.date_of_birth || ""
-
-            const [year = "", month = "", rawDay = ""] = dobField.split("-") || []
-            const day = rawDay.split("T")[0] || ""
-
-            const updatedFormValues = {
-              mobileNumber: customer.mobileNumber || "",
-              first_name: customer.first_name || "",
-              last_name: customer.last_name || "",
-              pan: customer.pan || "",
-              pincode: customer.pincode || "",
-              dob_day: day,
-              dob_month: month,
-              dob_year: year,
-              income: customer.income || "",
+            // If it's an array, extract the first item
+            if (Array.isArray(customer)) {
+              customer = customer[0]
             }
 
-            setFormValues(updatedFormValues)
+            if (customer && typeof customer === "object") {
+              const dob = new Date(customer.dob || customer.dateOfBirth || customer.date_of_birth || "");
 
-            setStep(3)
+              const day = dob.getDate().toString().padStart(2, "0");
+              console.log("🚀 ~ handleOtpSubmit ~ day:", day)
+              const month = (dob.getMonth() + 1).toString().padStart(2, "0"); // JS months are 0-indexed
+              console.log("🚀 ~ handleOtpSubmit ~ month:", month)
+              const year = dob.getFullYear().toString();
+              console.log("🚀 ~ handleOtpSubmit ~ year:", year)
 
+
+
+              const updatedFormValues = {
+                mobileNumber: customer.mobileNumber || "",
+                first_name: customer.first_name || "",
+                last_name: customer.last_name || "",
+                pan: customer.pan || "",
+                pincode: customer.pincode || "",
+                dob_day: day,
+                dob_month: month,
+                dob_year: year,
+                income: customer.income || "",
+              }
+
+              setFormValues(updatedFormValues)
+
+              setStep(3)
+
+            } else {
+              setTimeout(() => {
+                setStep(3)
+              }, 1500)
+            }
           } else {
             setTimeout(() => {
               setStep(3)
             }, 1500)
           }
-        } else {
+        } catch (error) {
+          console.error("Error fetching customer details after OTP:", error)
+          // If customer details fetch fails, still proceed to step 3
           setTimeout(() => {
             setStep(3)
           }, 1500)
         }
-      } catch (error) {
-        console.error("Error fetching customer details after OTP:", error)
-        // If customer details fetch fails, still proceed to step 3
-        setTimeout(() => {
-          setStep(3)
-        }, 1500)
       }
-    }
       if (res.success) {
         setOtpSuccess(true)
         setPhoneVerified(true)
@@ -941,7 +947,7 @@ const EligibilityCheckForm = () => {
                         >
                           <option value="">Day</option>
                           {[...Array(31)].map((_, i) => (
-                            <option key={i + 1} value={String(i + 1)}>
+                            <option key={i + 1} value={String(i + 1).padStart(2, '0')}>
                               {i + 1}
                             </option>
                           ))}

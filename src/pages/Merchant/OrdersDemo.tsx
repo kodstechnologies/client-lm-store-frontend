@@ -591,11 +591,24 @@ const OrdersDemo = () => {
 
     const formatDateTime = (dateTime: string) => {
         try {
-            return new Date(dateTime).toLocaleString()
+            const date = new Date(dateTime);
+
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+            const year = date.getFullYear();
+
+            let hours = date.getHours();
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12; // Convert to 12-hour format
+
+            return `${day}/${month}/${year} ${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
         } catch {
-            return dateTime
+            return dateTime;
         }
-    }
+    };
+
 
     // Handle page changes
     const handlePageChange = (page: number) => {
@@ -722,7 +735,7 @@ const OrdersDemo = () => {
                                 }}
                                 options={{
                                     mode: "range",
-                                    dateFormat: "d F Y",
+                                    dateFormat: "d/m/Y",
                                 }}
                                 className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder="Filter by Date Range"
@@ -800,7 +813,7 @@ const OrdersDemo = () => {
                                         <th className="border border-gray-300 p-2 sm:p-3 text-center font-semibold text-xs sm:text-sm">
                                             Details
                                         </th>
-                                        <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">ID</th>
+                                        <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">Order ID</th>
                                         <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">
                                             Status
                                         </th>
@@ -808,7 +821,7 @@ const OrdersDemo = () => {
                                             Date & Time
                                         </th>
                                         <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">
-                                            Name
+                                            Full Name
                                         </th>
                                         <th className="border border-gray-300 p-2 sm:p-3 text-left font-semibold text-xs sm:text-sm">
                                             Phone
