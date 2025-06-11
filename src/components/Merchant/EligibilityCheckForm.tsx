@@ -423,7 +423,7 @@ const EligibilityCheckForm = () => {
       const response = await eligibleCheckApi(finalValues)
       const responseCustomerId = response.data.data._id
       const eligibilityData = response.data.data
-      // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData:", eligibilityData)
+      console.log("🚀 ~ handleFinalSubmit ~ eligibilityData:", eligibilityData)
       if (response.data.success) {
         setCustomerId(responseCustomerId)
         // Set values from response if present
@@ -439,7 +439,7 @@ const EligibilityCheckForm = () => {
         }
 
         // Handle non-eligible customers with specific message
-        if (eligibilityData.eligibility_status === false) {
+        // if (eligibilityData.eligibility_status === false) {
           if (eligibilityData.message === "User already exists in the system.") {
             // Proceed without setting error
             setMaxAmount(10000)
@@ -449,7 +449,7 @@ const EligibilityCheckForm = () => {
             setEligibilityError(eligibilityData.message || "Not eligible.")
             return
           }
-        }
+        // }
 
         // Create order irrespective of eligibility (handled in backend)
         const order = await createOrderForEligible({ customerId: responseCustomerId })
