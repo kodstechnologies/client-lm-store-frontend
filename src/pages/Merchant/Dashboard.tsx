@@ -88,8 +88,6 @@ const Dashboard = () => {
     const storeName = localStorage.getItem('storeName') || 'STORE NAME';
     const storePhone = localStorage.getItem('storePhone')
     const storeCode = localStorage.getItem('storeCode')
-    // console.log("🚀 ~ Dashboard ~ storeCode:", storeCode)
-
     const storeMerchantName = localStorage.getItem('storeMerchantName')
 
     const areaChart: any = {
@@ -108,7 +106,7 @@ const Dashboard = () => {
                     show: false,
                 },
             },
-            colors: ['#805dca'],
+            colors:['#805dca', '#ca9c5d'] ,
             dataLabels: {
                 enabled: false,
             },

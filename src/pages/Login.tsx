@@ -26,6 +26,7 @@ const Login = () => {
     const [hide, setHide] = useState(true);
     const [timer, setTimer] = useState(0);
     const [otpSent, setOtpSent] = useState(false);
+    const [isSendingOtp, setIsSendingOtp] = useState(false);
 
     function hidefunction() {
         setHide(false);
@@ -265,17 +266,36 @@ const Login = () => {
                                             </div>
                                             <button
                                                 type="button"
-                                                onClick={() => {
+                                                disabled={isSendingOtp || countdown > 0}
+                                                onClick={async () => {
                                                     if (formik.values.contactNo.match(/^\d{10}$/)) {
-                                                        handleSendOtp(); // Remove hidefunction() from here
+                                                        setIsSendingOtp(true);
+                                                        try {
+                                                            await handleSendOtp(); // Await OTP send logic
+                                                        } catch (err) {
+                                                            console.error('OTP send failed', err);
+                                                        } finally {
+                                                            setIsSendingOtp(false);
+                                                        }
                                                     } else {
                                                         formik.setTouched({ contactNo: true });
                                                     }
                                                 }}
-                                                className="w-full btn-success mt-5 p-3"
+                                                className={`w-full mt-5 p-3 rounded-md border border-transparent transition 
+    ${countdown > 0 || isSendingOtp
+                                                        ? 'bg-gray-400 cursor-not-allowed'
+                                                        : 'bg-green-600 hover:bg-green-700 cursor-pointer'} text-white shadow`}
                                             >
-                                                {countdown > 0 ? `Resend OTP in ${countdown}s` : 'Continue'}
+                                                {isSendingOtp ? (
+                                                    <span className="flex items-center justify-center gap-2">
+                                                        <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                        <span>Sending OTP...</span>
+                                                    </span>
+                                                ) : (
+                                                    countdown > 0 ? `Resend OTP in ${countdown}s` : 'Continue'
+                                                )}
                                             </button>
+
 
                                         </div>
 
