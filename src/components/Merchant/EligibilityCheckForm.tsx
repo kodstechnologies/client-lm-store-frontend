@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useEffect } from "react"
 import { Formik, Form, Field, ErrorMessage } from "formik"
 import * as Yup from "yup"
@@ -7,6 +8,7 @@ import QRCode from "react-qr-code"
 import {
   createOrderForEligible,
   eligibleCheckApi,
+  fetchCustomerDetails,
   sendOtpForEligibilityCheck,
   verifyOtpForEligibilityCheck,
 } from "../../api"
@@ -61,12 +63,23 @@ const STORAGE_KEY = "eligibility_form_state"
 
 const EligibilityCheckForm = () => {
   const [step, setStep] = useState(1)
-  const [formValues, setFormValues] = useState<FormValues>(initialValues)
+  const [formValues, setFormValues] = useState({
+    mobileNumber: "",
+    first_name: "",
+    last_name: "",
+    pan: "",
+    pincode: "",
+    dob_day: "",
+    dob_month: "",
+    dob_year: "",
+    income: "",
+  })
+
   const [phoneVerified, setPhoneVerified] = useState(false)
   const [otpError, setOtpError] = useState("")
   const [otpSuccess, setOtpSuccess] = useState(false)
   const [eligibilityAmount, setEligibilityAmount] = useState<number | string | null>(null)
-  const [maxAmount, setMaxAmount] = useState<number | string>(0);
+  const [maxAmount, setMaxAmount] = useState<number | string>(0)
   const [eligibilityTenure, setEligibilityTenure] = useState<number | null>(null)
   const [qrUrl, setQrUrl] = useState<string>("")
   const [eligibilityError, setEligibilityError] = useState("")
@@ -75,6 +88,7 @@ const EligibilityCheckForm = () => {
   const [isEligibleCustomer, setIsEligibleCustomer] = useState(false)
   const [hasSubmittedOnce, setHasSubmittedOnce] = useState(false)
   const [customerId, setCustomerId] = useState<string | null>(null)
+  const [customerDetails, setCustomerDetails] = useState<any>(null)
 
   // Loading states
   const [isLoadingOtp, setIsLoadingOtp] = useState(false)
@@ -88,60 +102,60 @@ const EligibilityCheckForm = () => {
   ).current
 
   // Load persisted state on component mount
-  useEffect(() => {
-    const savedState = localStorage.getItem(STORAGE_KEY)
-    if (savedState) {
-      try {
-        const parsedState: PersistedState = JSON.parse(savedState)
-        setStep(parsedState.step)
-        setFormValues(parsedState.formValues)
-        setPhoneVerified(parsedState.phoneVerified)
-        setEligibilityAmount(parsedState.eligibilityAmount)
-        setMaxAmount(parsedState.maxAmount)
-        setEligibilityTenure(parsedState.eligibilityTenure)
-        setQrUrl(parsedState.qrUrl)
-        setIsEligibleCustomer(parsedState.isEligibleCustomer || false)
-        setHasSubmittedOnce(parsedState.hasSubmittedOnce || false)
-        setCustomerId(parsedState.customerId || null)
+  // useEffect(() => {
+  //   const savedState = localStorage.getItem(STORAGE_KEY)
+  //   if (savedState) {
+  //     try {
+  //       const parsedState: PersistedState = JSON.parse(savedState)
+  //       setStep(parsedState.step)
+  //       setFormValues(parsedState.formValues)
+  //       setPhoneVerified(parsedState.phoneVerified)
+  //       setEligibilityAmount(parsedState.eligibilityAmount)
+  //       setMaxAmount(parsedState.maxAmount)
+  //       setEligibilityTenure(parsedState.eligibilityTenure)
+  //       setQrUrl(parsedState.qrUrl)
+  //       setIsEligibleCustomer(parsedState.isEligibleCustomer || false)
+  //       setHasSubmittedOnce(parsedState.hasSubmittedOnce || false)
+  //       setCustomerId(parsedState.customerId || null)
 
-        // If we're on step 4 and have eligibility data, mark as verified
-        if (parsedState.step === 4 && parsedState.eligibilityAmount) {
-          setIsOtpVerified(true)
-          setOtpSuccess(true)
-        }
-      } catch (error) {
-        console.error("Error loading saved state:", error)
-        localStorage.removeItem(STORAGE_KEY)
-      }
-    }
-  }, [])
+  //       // If we're on step 4 and have eligibility data, mark as verified
+  //       if (parsedState.step === 4 && parsedState.eligibilityAmount) {
+  //         setIsOtpVerified(true)
+  //         setOtpSuccess(true)
+  //       }
+  //     } catch (error) {
+  //       console.error("Error loading saved state:", error)
+  //       localStorage.removeItem(STORAGE_KEY)
+  //     }
+  //   }
+  // }, [])
 
-  useEffect(() => {
-    const stateToSave: PersistedState = {
-      step,
-      formValues,
-      phoneVerified,
-      eligibilityAmount,
-      maxAmount,
-      eligibilityTenure,
-      qrUrl,
-      isEligibleCustomer,
-      hasSubmittedOnce,
-      customerId,
-    }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave))
-  }, [
-    step,
-    formValues,
-    phoneVerified,
-    eligibilityAmount,
-    maxAmount,
-    eligibilityTenure,
-    qrUrl,
-    isEligibleCustomer,
-    hasSubmittedOnce,
-    customerId,
-  ])
+  // useEffect(() => {
+  //   const stateToSave: PersistedState = {
+  //     step,
+  //     formValues,
+  //     phoneVerified,
+  //     eligibilityAmount,
+  //     maxAmount,
+  //     eligibilityTenure,
+  //     qrUrl,
+  //     isEligibleCustomer,
+  //     hasSubmittedOnce,
+  //     customerId,
+  //   }
+  //   localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave))
+  // }, [
+  //   step,
+  //   formValues,
+  //   phoneVerified,
+  //   eligibilityAmount,
+  //   maxAmount,
+  //   eligibilityTenure,
+  //   qrUrl,
+  //   isEligibleCustomer,
+  //   hasSubmittedOnce,
+  //   customerId,
+  // ])
 
   // Clear persisted state and reset all states
   const clearPersistedState = () => {
@@ -163,12 +177,16 @@ const EligibilityCheckForm = () => {
     setCustomerId(null)
   }
   useEffect(() => {
-    // Clear localStorage and reset state on mount
-    clearPersistedState();
-    //  console.log("Local storage",localStorage.getItem(STORAGE_KEY))
-  }, []); // Empty dependency array ensures this runs only on mount
+    localStorage.removeItem(STORAGE_KEY)
+
+    // Reset all form states if needed
+    setStep(1)
+    setFormValues(initialValues)
+  }, [])
+
+  // Empty dependency array ensures this runs only on mount
   // Reset states when starting new application
-  
+
   const handleNewApplication = () => {
     clearPersistedState()
     setEligibilityAmount(null)
@@ -176,6 +194,8 @@ const EligibilityCheckForm = () => {
     setOtpSuccess(false)
     setOtpError("")
   }
+  useEffect(() => {
+  }, [formValues])
 
   const phoneValidationSchema = Yup.object({
     mobileNumber: Yup.string()
@@ -260,89 +280,131 @@ const EligibilityCheckForm = () => {
       const res = await verifyOtpForEligibilityCheck({
         mobileNumber: formValues.mobileNumber,
         otp: otpString,
-      });
+      })
+      console.log("🚀 ~ handleOtpSubmit ~ res:", res)
 
-      // console.log("🚀 ~ handleOtpSubmit ~ res:", res);
+      try {
+        // Only fetch customer details if we have a valid customerId
+        const customerIdToUse = res.Order?.customerId || res.customerId
+        console.log("🚀 ~ handleOtpSubmit ~ customerIdToUse:", customerIdToUse)
+        if (customerIdToUse) {
+          const customerDetailsResponse = await fetchCustomerDetails(customerIdToUse)
 
+          let customer = customerDetailsResponse?.data?.data || customerDetailsResponse?.data || customerDetailsResponse
+
+
+          // If it's an array, extract the first item
+          if (Array.isArray(customer)) {
+            customer = customer[0]
+          }
+
+          if (customer && typeof customer === "object") {
+            const dobField = customer.dob || customer.dateOfBirth || customer.date_of_birth || ""
+
+            const [year = "", month = "", rawDay = ""] = dobField.split("-") || []
+            const day = rawDay.split("T")[0] || ""
+
+            const updatedFormValues = {
+              mobileNumber: customer.mobileNumber || "",
+              first_name: customer.first_name || "",
+              last_name: customer.last_name || "",
+              pan: customer.pan || "",
+              pincode: customer.pincode || "",
+              dob_day: day,
+              dob_month: month,
+              dob_year: year,
+              income: customer.income || "",
+            }
+
+            setFormValues(updatedFormValues)
+
+
+          } else {
+            setTimeout(() => {
+              setStep(3)
+            }, 1500)
+          }
+        } else {
+          setTimeout(() => {
+            setStep(3)
+          }, 1500)
+        }
+      } catch (error) {
+        console.error("Error fetching customer details after OTP:", error)
+        // If customer details fetch fails, still proceed to step 3
+        setTimeout(() => {
+          setStep(3)
+        }, 1500)
+      }
       if (res.success) {
-        setOtpSuccess(true);
-        setPhoneVerified(true);
-        setIsOtpVerified(true);
+        setOtpSuccess(true)
+        setPhoneVerified(true)
+        setIsOtpVerified(true)
 
         // CASE 1: Eligible - New Customer or not completed before
 
         if (res.max_eligibility_amount) {
-          // console.log("hi");
-
-          setEligibilityAmount(res.max_eligibility_amount);
-          setEligibilityTenure(res.tenure || 12);
-          setIsEligibleCustomer(true || false);
-          setCustomerId(res.customerId);
+          setEligibilityAmount(res.max_eligibility_amount)
+          setEligibilityTenure(res.tenure || 12)
+          setIsEligibleCustomer(true)
+          setCustomerId(res.customerId || res.Order?.customerId)
 
           // Generate QR code for eligible customer
-          setIsGeneratingQR(true);
+          setIsGeneratingQR(true)
           try {
-            const order = await createOrderForEligible({ customerId: res.customerId });
-            if (order?.data?.order?.qrUrl) {
-              setQrUrl(order.data.order.qrUrl); //qr
+            const customerIdForOrder = res.customerId || res.Order?.customerId
+            if (customerIdForOrder) {
+              const order = await createOrderForEligible({ customerId: customerIdForOrder })
+              if (order?.data?.order?.qrUrl) {
+                setQrUrl(order.data.order.qrUrl)
+              }
             }
-            // console.log("🚀 ~ handleOtpSubmit ~ order:", order);
           } catch (error) {
-            console.error("Error creating order for eligible customer:", error);
+            console.error("Error creating order for eligible customer:", error)
           } finally {
-            setIsGeneratingQR(false);
+            setIsGeneratingQR(false)
           }
 
           // CASE 2: Already has a completed order — Returning customer
-
-        }
-        else if (res.Order?.status === "QR Generated") {
+        } else if (res.Order?.status === "QR Generated") {
           // console.log("🚀 Returning customer with completed order");
-          setIsEligibleCustomer(true);
-          setEligibilityAmount(res.Order.eligibleAmount || 3000);
+          setIsEligibleCustomer(true)
+          setEligibilityAmount(res.Order.eligibleAmount || 3000)
           setMaxAmount(10000)
-          setEligibilityTenure(res.Order.tenure || 12);
-          setCustomerId(res.Order.customerId);
+          setEligibilityTenure(res.Order.tenure || 12)
+          setCustomerId(res.Order.customerId)
 
           if (res.Order.qrUrl) {
-            setQrUrl(res.Order.qrUrl);
-            // console.log("✅ Setting QR URL:", res.Order.qrUrl);
+            setQrUrl(res.Order.qrUrl)
           } else {
-            console.warn("❌ No QR URL in completed order");
+            console.warn("❌ No QR URL in completed order")
 
-
-            setIsGeneratingQR(false); // Do this AFTER qrUrl is set
+            setIsGeneratingQR(false) // Do this AFTER qrUrl is set
           }
-        }
-        else {
+        } else {
           // console.log("ORDER STSTUS", res.Order?.status);
 
           setTimeout(() => {
-            setStep(3);
-          }, 1500);
+            setStep(3)
+          }, 1500)
         }
-
       } else {
         if (res.message === "Customer not eligible") {
-          setStep(3);
+          setStep(3)
         } else if (res.message === "Eligibility expired") {
-          setOtpError(res.message);
+          setOtpError(res.message)
           setTimeout(() => {
-            setStep(3);
-          }, 1500);
+            setStep(3)
+          }, 1500)
         }
       }
     } catch (error: any) {
-      const errMsg =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Something went wrong during OTP verification.";
-      console.error("OTP verification failed:", errMsg);
-      setOtpError(errMsg);
+      const errMsg = error?.response?.data?.message || error?.message || "Something went wrong during OTP verification."
+      console.error("OTP verification failed:", errMsg)
+      setOtpError(errMsg)
     } finally {
-      setIsVerifyingOtp(false);
+      setIsVerifyingOtp(false)
     }
-
   }
 
   const handleFinalSubmit = async (values: FormValues) => {
@@ -359,14 +421,11 @@ const EligibilityCheckForm = () => {
 
     try {
       const response = await eligibleCheckApi(finalValues)
-
       const responseCustomerId = response.data.data._id
       const eligibilityData = response.data.data
       // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData:", eligibilityData)
-
       if (response.data.success) {
         setCustomerId(responseCustomerId)
-
         // Set values from response if present
         if (eligibilityData.data?.max_amount) {
           // console.log("🚀 ~ handleFinalSubmit ~ eligibilityData.data?.max_amount:", eligibilityData.data?.max_amount)
@@ -403,7 +462,6 @@ const EligibilityCheckForm = () => {
         setStep(4)
       } else {
         const eligibilityData = response.data
-        // console.log(eligibilityData.message);
 
         if (eligibilityData.message) {
           setEligibilityError(eligibilityData.message)
@@ -487,6 +545,7 @@ const EligibilityCheckForm = () => {
                 dob_year: "",
                 income: "",
               }}
+              enableReinitialize={true}
               validationSchema={phoneValidationSchema}
               onSubmit={handlePhoneSubmit}
             >
@@ -581,7 +640,10 @@ const EligibilityCheckForm = () => {
                                 }}
                                 onPaste={(e) => {
                                   e.preventDefault()
-                                  const pastedData = e.clipboardData.getData("text/plain").replace(/\D/g, "").slice(0, 6)
+                                  const pastedData = e.clipboardData
+                                    .getData("text/plain")
+                                    .replace(/\D/g, "")
+                                    .slice(0, 6)
                                   if (pastedData) {
                                     const newOtp = Array(6).fill("")
                                     for (let i = 0; i < pastedData.length; i++) {
@@ -594,7 +656,6 @@ const EligibilityCheckForm = () => {
                             ))}
                           </div>
                         </div>
-
 
                         {otpError && !isCustomerNotEligible && (
                           <div className="bg-red-50 border border-red-200 text-red-700 px-2 py-1 rounded flex items-center text-sm">
@@ -654,9 +715,9 @@ const EligibilityCheckForm = () => {
                           <button
                             type="button"
                             onClick={() => {
-                              handleResendOtp();
-                              setFieldValue("otp", ["", "", "", "", "", ""]);
-                              inputRefs[0]?.current?.focus();
+                              handleResendOtp()
+                              setFieldValue("otp", ["", "", "", "", "", ""])
+                              inputRefs[0]?.current?.focus()
                             }}
                             disabled={isResendingOtp || isOtpVerified}
                             className="text-blue-600 hover:text-blue-700 disabled:opacity-50"
@@ -741,7 +802,6 @@ const EligibilityCheckForm = () => {
                       Start New Application
                     </button>
                   </div>
-
                 </div>
               )}
             </div>
@@ -750,8 +810,19 @@ const EligibilityCheckForm = () => {
           {/* Step 3: Complete Profile */}
           {step === 3 && (
             <div className="space-y-3">
+              {/* {console.log("🚀 ~ Step 3 formValues:", formValues)} */}
               <Formik
-                initialValues={formValues}
+                initialValues={{
+                  mobileNumber: formValues.mobileNumber || "",
+                  first_name: formValues.first_name || "",
+                  last_name: formValues.last_name || "",
+                  pan: formValues.pan || "",
+                  pincode: formValues.pincode || "",
+                  dob_day: formValues.dob_day || "",
+                  dob_month: formValues.dob_month || "",
+                  dob_year: formValues.dob_year || "",
+                  income: formValues.income || "",
+                }}
                 validationSchema={fullFormValidationSchema}
                 onSubmit={handleFinalSubmit}
                 enableReinitialize={true}
@@ -956,7 +1027,6 @@ const EligibilityCheckForm = () => {
                       onClick={handleNewApplication}
                     >
                       <ArrowLeft className="h-4 w-4 mr-1" />
-
                       Back
                     </button>
                     {/* </div> */}

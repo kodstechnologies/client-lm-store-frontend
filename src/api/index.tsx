@@ -91,6 +91,24 @@ export const eligibleCheckApi = async (payload: any) => {
     }
 };
 
+export const fetchCustomerDetails = async (id: any) => {
+    // console.log("🚀 ~ fetchCustomerDetails ~ id:", id)
+    const token = localStorage.getItem("authToken");
+    // const res=await api.post('/',payload,{})
+    try {
+        const res = await api.get(`get-customer-details/${id}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+        // console.log("🚀 ~ fetchCustomerDetails ~ res:", res)
+        return res
+    } catch (error) {
+        console.error("error:", error);
+        throw error;
+    }
+}
+
 //Create QR
 
 export const createOrderForEligible = async (payload: any) => {
@@ -199,7 +217,7 @@ export const filterByDate = async (startDate: string, endDate: string) => {
             },
         })
         return res;
-    } catch (error:any) {
+    } catch (error: any) {
         console.error("Error filtering orders by date:", error.message);
         return null;
     }

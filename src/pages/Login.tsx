@@ -313,8 +313,8 @@ const Login = () => {
                                                             key={index}
                                                             id={`otp${index}`}
                                                             name={`otp${index}`}
-                                                            type="password" 
-                                                            inputMode="numeric" 
+                                                            type="password"
+                                                            inputMode="numeric"
                                                             pattern="[0-9]*"
                                                             ref={(el: HTMLInputElement | null) => {
                                                                 if (el) inputRefs.current[index] = el;
@@ -353,11 +353,12 @@ const Login = () => {
                                         <button
                                             type="button"
                                             onClick={handleSendOtp}
-                                            disabled={otpSent}
+                                            disabled={otpSent && timer > 0}
                                             className="btn btn-gradient !mt-6 w-full border-0 uppercase shadow-[0_10px_20px_-10px_rgba(67,97,238,0.44)]"
                                         >
-                                            {otpSent ? `Resend OTP in 00:${timer < 10 ? `0${timer}` : timer}` : 'Resend OTP'}
+                                            {otpSent && timer > 0 ? `Resend OTP in 00:${timer < 10 ? `0${timer}` : timer}` : 'Resend OTP'}
                                         </button>
+
                                     </>
                                 )}
                             </form>
