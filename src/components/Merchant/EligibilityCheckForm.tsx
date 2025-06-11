@@ -282,6 +282,10 @@ const EligibilityCheckForm = () => {
         otp: otpString,
       })
       console.log("🚀 ~ handleOtpSubmit ~ res:", res)
+      if (res?.Order?.status === "QR Generated") {
+        setQrUrl(res.Order.qrUrl)
+        setStep(4)
+      }else{
 
       try {
         // Only fetch customer details if we have a valid customerId
@@ -289,8 +293,10 @@ const EligibilityCheckForm = () => {
         console.log("🚀 ~ handleOtpSubmit ~ customerIdToUse:", customerIdToUse)
         if (customerIdToUse) {
           const customerDetailsResponse = await fetchCustomerDetails(customerIdToUse)
+          console.log("🚀 ~ handleOtpSubmit ~ customerDetailsResponse:", customerDetailsResponse)
 
           let customer = customerDetailsResponse?.data?.data || customerDetailsResponse?.data || customerDetailsResponse
+          console.log("🚀 ~ handleOtpSubmit ~ customer:", customer)
 
 
           // If it's an array, extract the first item
@@ -318,6 +324,7 @@ const EligibilityCheckForm = () => {
 
             setFormValues(updatedFormValues)
 
+            setStep(3)
 
           } else {
             setTimeout(() => {
@@ -336,6 +343,7 @@ const EligibilityCheckForm = () => {
           setStep(3)
         }, 1500)
       }
+    }
       if (res.success) {
         setOtpSuccess(true)
         setPhoneVerified(true)
@@ -421,6 +429,7 @@ const EligibilityCheckForm = () => {
 
     try {
       const response = await eligibleCheckApi(finalValues)
+      console.log("🚀 ~ handleFinalSubmit ~ response:", response)
       const responseCustomerId = response.data.data._id
       const eligibilityData = response.data.data
       console.log("🚀 ~ handleFinalSubmit ~ eligibilityData:", eligibilityData)
@@ -440,15 +449,16 @@ const EligibilityCheckForm = () => {
 
         // Handle non-eligible customers with specific message
         // if (eligibilityData.eligibility_status === false) {
-          if (eligibilityData.message === "User already exists in the system.") {
-            // Proceed without setting error
-            setMaxAmount(10000)
-            setEligibilityAmount(3000)
-            setEligibilityTenure(30)
-          } else {
-            setEligibilityError(eligibilityData.message || "Not eligible.")
-            return
-          }
+        if (eligibilityData.message === "User already exists in the system.") {
+          // Proceed without setting error
+          setMaxAmount(10000)
+          setEligibilityAmount(3000)
+          setEligibilityTenure(30)
+        }
+        //  else {
+        //   setEligibilityError(eligibilityData.message || "Not eligible.")
+        //   return
+        // }
         // }
 
         // Create order irrespective of eligibility (handled in backend)
