@@ -43,10 +43,9 @@ jobs:
 
     - name: Install serve locally
       run: npm install serve --save-dev
-    
+
     - name: Serve React build with PM2
       run: |
         pm2 delete FrontendServer || true
-        npx serve -s dist -l 8080 --single &
-        pm2 start npx --name "FrontendServer" -- run serve
+        pm2 start npx --name "FrontendServer" -- serve -s dist -l 8080
         pm2 save
