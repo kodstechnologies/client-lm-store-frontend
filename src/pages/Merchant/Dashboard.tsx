@@ -188,7 +188,7 @@ const Dashboard = () => {
             <div className="panel h-full">
                 <div className="flex items-start border-b  border-white-light dark:border-[#1b2e4b] -m-5 mb-5 p-5">
                     <div className="shrink-0 ring-2 ring-white-light dark:ring-dark rounded-full ltr:mr-4 rtl:ml-4">
-                        <img src="/assets/images/profile-1.jpeg" alt="profile1" className="w-10 h-10 rounded-full object-cover" />
+                        <img src="/assets/images/profile-787.png" alt="profile1" className="w-10 h-10 rounded-full object-cover" />
                     </div>
                     <div className="font-semibold">
                         {/* <h6>Store Name</h6> */}
