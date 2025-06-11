@@ -39,7 +39,7 @@ const TrainingVideos = () => {
         <div className="container mx-auto p-5">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-6">
                 <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Training Materials</h2>
-                <div className="relative w-full md:w-96">
+                {/* <div className="relative w-full md:w-96">
                     <input
                         type="text"
                         placeholder="Search Videos"
@@ -50,7 +50,7 @@ const TrainingVideos = () => {
                     <button type="button" className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-blue-500">
                         <IconSearch />
                     </button>
-                </div>
+                </div> */}
             </div>
 
             <div className="mb-8 p-6 bg-white dark:bg-gray-800 rounded-lg ">
