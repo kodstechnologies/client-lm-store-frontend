@@ -282,39 +282,36 @@ const EligibilityCheckForm = () => {
         otp: otpString,
       })
       console.log("🚀 ~ handleOtpSubmit ~ res:", res)
-      if (res?.Order?.status === "QR Generated") {
+      // Check if QR is generated and eligibility date is NOT expired
+      if (
+        res?.Order?.status === "QR Generated" &&
+        res?.Order?.eligibility_expiry_date &&
+        new Date(res.Order.eligibility_expiry_date) > new Date() // not expired
+      ) {
+        // Show QR
         setQrUrl(res.Order.qrUrl)
         setStep(4)
       } else {
-
+        // Eligibility expired or QR not generated  Show prefilled form
         try {
-          // Only fetch customer details if we have a valid customerId
           const customerIdToUse = res.Order?.customerId || res.customerId
           console.log("🚀 ~ handleOtpSubmit ~ customerIdToUse:", customerIdToUse)
+
           if (customerIdToUse) {
             const customerDetailsResponse = await fetchCustomerDetails(customerIdToUse)
             console.log("🚀 ~ handleOtpSubmit ~ customerDetailsResponse:", customerDetailsResponse)
 
             let customer = customerDetailsResponse?.data?.data || customerDetailsResponse?.data || customerDetailsResponse
-            console.log("🚀 ~ handleOtpSubmit ~ customer:", customer)
 
-
-            // If it's an array, extract the first item
             if (Array.isArray(customer)) {
               customer = customer[0]
             }
 
             if (customer && typeof customer === "object") {
-              const dob = new Date(customer.dob || customer.dateOfBirth || customer.date_of_birth || "");
-
-              const day = dob.getDate().toString().padStart(2, "0");
-              console.log("🚀 ~ handleOtpSubmit ~ day:", day)
-              const month = (dob.getMonth() + 1).toString().padStart(2, "0"); // JS months are 0-indexed
-              console.log("🚀 ~ handleOtpSubmit ~ month:", month)
-              const year = dob.getFullYear().toString();
-              console.log("🚀 ~ handleOtpSubmit ~ year:", year)
-
-
+              const dob = new Date(customer.dob || customer.dateOfBirth || customer.date_of_birth || "")
+              const day = dob.getDate().toString().padStart(2, "0")
+              const month = (dob.getMonth() + 1).toString().padStart(2, "0")
+              const year = dob.getFullYear().toString()
 
               const updatedFormValues = {
                 mobileNumber: customer.mobileNumber || "",
@@ -329,27 +326,19 @@ const EligibilityCheckForm = () => {
               }
 
               setFormValues(updatedFormValues)
-
               setStep(3)
-
             } else {
-              setTimeout(() => {
-                setStep(3)
-              }, 1500)
+              setTimeout(() => setStep(3), 1500)
             }
           } else {
-            setTimeout(() => {
-              setStep(3)
-            }, 1500)
+            setTimeout(() => setStep(3), 1500)
           }
         } catch (error) {
           console.error("Error fetching customer details after OTP:", error)
-          // If customer details fetch fails, still proceed to step 3
-          setTimeout(() => {
-            setStep(3)
-          }, 1500)
+          setTimeout(() => setStep(3), 1500)
         }
       }
+
       if (res.success) {
         setOtpSuccess(true)
         setPhoneVerified(true)
