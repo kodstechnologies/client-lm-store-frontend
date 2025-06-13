@@ -302,6 +302,7 @@ const OrdersDemo = () => {
     const [dateFilterLoading, setDateFilterLoading] = useState<boolean>(false)
     const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState<boolean>(false)
     const [initialLoading, setInitialLoading] = useState<boolean>(true)
+    const [allOrdersPhone, setAllOrdersPhone] = useState<OrderType[]>([])
 
     // Pagination states
     const [currentPage, setCurrentPage] = useState<number>(1)
@@ -325,7 +326,7 @@ const OrdersDemo = () => {
     }
 
     // Load orders with pagination (100 orders per page from past 30 days)
-    const loadOrdersWithPagination = async (page = 1, isInitialLoad = false) => {
+    const loadOrdersWithPagination = async (page = 1, isInitialLoad = false,searchTerm=search) => {
         if (isInitialLoad) {
             setInitialLoading(true)
         } else {
@@ -335,7 +336,6 @@ const OrdersDemo = () => {
 
         try {
             const response = await fetchOrdersByStore()
-            // console.log("🚀 ~ loadOrdersWithPagination ~ response:", response)
 
             // Safely extract data and ensure it's an array
             const responseData = response?.data || response || []
@@ -352,12 +352,20 @@ const OrdersDemo = () => {
             const startDate = new Date()
             startDate.setDate(startDate.getDate() - 30)
 
-            const filteredOrders = ordersArray
+            let filteredOrders = ordersArray
                 .filter((order: OrderType) => {
                     const orderDate = new Date(order.createdAt)
                     return orderDate >= startDate && orderDate <= endDate
                 })
             // .sort((a: OrderType, b: OrderType) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+            console.log("search ",searchTerm)
+                // ✅ Apply phone number search if present
+            if (searchTerm.trim() !== "") {
+            filteredOrders = filteredOrders.filter(
+                (order: OrderType) => order.number === searchTerm.trim()
+            );
+            }
 
             setAllOrders(filteredOrders)
 
@@ -401,6 +409,7 @@ const OrdersDemo = () => {
             const searchResults = ensureArray(responseData)
 
             setOrders(searchResults)
+            setAllOrdersPhone(searchResults)
             setTotalPages(1)
             setTotalOrders(searchResults.length)
             setCurrentPage(1)
@@ -417,13 +426,14 @@ const OrdersDemo = () => {
     }
 
     const handleClearSearch = () => {
+        const search=""
         setSearch("")
         setIsSearchMode(false)
         setError(null)
 
         // If date filter is active, don't reload - just clear search mode
         if (!isDateFilterMode) {
-            loadOrdersWithPagination(1, false)
+            loadOrdersWithPagination(1, false,search)
         }
     }
 
@@ -488,6 +498,8 @@ const OrdersDemo = () => {
     }
 
     const handleClearDateFilter = () => {
+        console.log("all orders ",allOrders)
+        console.log("search ",search)
         setDateRange([])
         setIsDateFilterMode(false)
         setFilteredOrders([])
@@ -495,13 +507,13 @@ const OrdersDemo = () => {
         if (flatpickrRef.current) {
             flatpickrRef.current.flatpickr.clear()
         }
-        loadOrdersWithPagination(1, false)
+        loadOrdersWithPagination(1, false,search)
     }
 
     // Replace the initial load useEffect
     useEffect(() => {
         if (!hasInitiallyLoaded) {
-            loadOrdersWithPagination(1, true)
+            loadOrdersWithPagination(1, true,search)
             setHasInitiallyLoaded(true)
         }
     }, [hasInitiallyLoaded])
@@ -616,7 +628,7 @@ const OrdersDemo = () => {
             setExpandedRow(null) // Close any expanded rows
 
             if (!isSearchMode && !isDateFilterMode) {
-                loadOrdersWithPagination(page, false)
+                loadOrdersWithPagination(page, false,search)
             } else if (isDateFilterMode && filteredOrders.length > 0) {
                 // Handle pagination for date filtered data
                 const startIndex = (page - 1) * ordersPerPage

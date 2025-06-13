@@ -127,21 +127,21 @@ export const createOrderForEligible = async (payload: any) => {
     }
 }
 
-export const fetchAllOrders = async () => {
-    try {
-        const token = localStorage.getItem("authToken");
+// export const fetchAllOrders = async () => {
+//     try {
+//         const token = localStorage.getItem("authToken");
 
-        const res = await api.get('/all-orders', {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        })
-        return res;
-    } catch (error) {
-        console.error("error:", error);
-        throw error;
-    }
-}
+//         const res = await api.get('/all-orders', {
+//             headers: {
+//                 Authorization: `Bearer ${token}`
+//             }
+//         })
+//         return res;
+//     } catch (error) {
+//         console.error("error:", error);
+//         throw error;
+//     }
+// }
 
 
 export const fetchOrdersByStore = async () => {
