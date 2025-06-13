@@ -359,7 +359,7 @@ const OrdersDemo = () => {
                 })
             // .sort((a: OrderType, b: OrderType) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
-            console.log("search ",searchTerm)
+            // console.log("search ",searchTerm)
                 // ✅ Apply phone number search if present
             if (searchTerm.trim() !== "") {
             filteredOrders = filteredOrders.filter(
@@ -498,8 +498,8 @@ const OrdersDemo = () => {
     }
 
     const handleClearDateFilter = () => {
-        console.log("all orders ",allOrders)
-        console.log("search ",search)
+        // console.log("all orders ",allOrders)
+        // console.log("search ",search)
         setDateRange([])
         setIsDateFilterMode(false)
         setFilteredOrders([])

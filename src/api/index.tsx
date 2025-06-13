@@ -84,7 +84,7 @@ export const eligibleCheckApi = async (payload: any) => {
                 Authorization: `Bearer ${token}`
             }
         });
-        console.log("🚀 ~ eligibleCheckApi ~ res.data:", res.data)
+        // console.log("🚀 ~ eligibleCheckApi ~ res.data:", res.data)
         return res;
     } catch (error) {
         console.error("Eligibility check error:", error);
