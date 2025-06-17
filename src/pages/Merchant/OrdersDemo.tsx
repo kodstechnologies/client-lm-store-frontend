@@ -326,7 +326,7 @@ const OrdersDemo = () => {
     }
 
     // Load orders with pagination (100 orders per page from past 30 days)
-    const loadOrdersWithPagination = async (page = 1, isInitialLoad = false,searchTerm=search) => {
+    const loadOrdersWithPagination = async (page = 1, isInitialLoad = false, searchTerm = search) => {
         if (isInitialLoad) {
             setInitialLoading(true)
         } else {
@@ -354,17 +354,17 @@ const OrdersDemo = () => {
 
             let filteredOrders = ordersArray
                 .filter((order: OrderType) => {
-                    const orderDate = new Date(order.createdAt)
+                    const orderDate = new Date(order.updatedAt)
                     return orderDate >= startDate && orderDate <= endDate
                 })
             // .sort((a: OrderType, b: OrderType) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
             // console.log("search ",searchTerm)
-                // ✅ Apply phone number search if present
+            // ✅ Apply phone number search if present
             if (searchTerm.trim() !== "") {
-            filteredOrders = filteredOrders.filter(
-                (order: OrderType) => order.number === searchTerm.trim()
-            );
+                filteredOrders = filteredOrders.filter(
+                    (order: OrderType) => order.number === searchTerm.trim()
+                );
             }
 
             setAllOrders(filteredOrders)
@@ -402,20 +402,27 @@ const OrdersDemo = () => {
 
         try {
             const response = await searchOrderByPhoneNumber(phoneNumber)
-            // console.log("🚀 ~ handleSearch ~ response:", response)
+            console.log("🚀 ~ handleSearch ~ response:", response)
 
-            // Safely handle the response and ensure it's always an array
             const responseData = response?.data || response || []
             const searchResults = ensureArray(responseData)
 
-            setOrders(searchResults)
-            setAllOrdersPhone(searchResults)
+            const endDate = new Date()
+            const startDate = new Date()
+            startDate.setDate(endDate.getDate() - 30)
+
+            const filteredByDate = searchResults.filter((order: OrderType) => {
+                const orderDate = new Date(order.updatedAt)
+                return orderDate >= startDate && orderDate <= endDate
+            })
+
+            setOrders(filteredByDate)
+            setAllOrdersPhone(filteredByDate)
             setTotalPages(1)
-            setTotalOrders(searchResults.length)
+            setTotalOrders(filteredByDate.length)
             setCurrentPage(1)
         } catch (err: any) {
             console.error("Search error:", err)
-            // Set empty array on error
             setOrders([])
             setTotalPages(1)
             setTotalOrders(0)
@@ -426,14 +433,14 @@ const OrdersDemo = () => {
     }
 
     const handleClearSearch = () => {
-        const search=""
+        const search = ""
         setSearch("")
         setIsSearchMode(false)
         setError(null)
 
         // If date filter is active, don't reload - just clear search mode
         if (!isDateFilterMode) {
-            loadOrdersWithPagination(1, false,search)
+            loadOrdersWithPagination(1, false, search)
         }
     }
 
@@ -471,7 +478,7 @@ const OrdersDemo = () => {
                     return orderDate >= startDate && orderDate <= endDate
                 })
 
-                const sorted = filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                const sorted = filtered.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
 
                 // Store filtered data for pagination
                 setFilteredOrders(sorted)
@@ -507,13 +514,13 @@ const OrdersDemo = () => {
         if (flatpickrRef.current) {
             flatpickrRef.current.flatpickr.clear()
         }
-        loadOrdersWithPagination(1, false,search)
+        loadOrdersWithPagination(1, false, search)
     }
 
     // Replace the initial load useEffect
     useEffect(() => {
         if (!hasInitiallyLoaded) {
-            loadOrdersWithPagination(1, true,search)
+            loadOrdersWithPagination(1, true, search)
             setHasInitiallyLoaded(true)
         }
     }, [hasInitiallyLoaded])
@@ -628,7 +635,7 @@ const OrdersDemo = () => {
             setExpandedRow(null) // Close any expanded rows
 
             if (!isSearchMode && !isDateFilterMode) {
-                loadOrdersWithPagination(page, false,search)
+                loadOrdersWithPagination(page, false, search)
             } else if (isDateFilterMode && filteredOrders.length > 0) {
                 // Handle pagination for date filtered data
                 const startIndex = (page - 1) * ordersPerPage
