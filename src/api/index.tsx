@@ -17,7 +17,7 @@ export const mobileVerify = async (payload: any) => {
         throw error;
     }
 }
-
+//test 
 export const verifyOtp = async (payload: any) => {
     try {
         const res = await api.post('/otp-verify', payload);
