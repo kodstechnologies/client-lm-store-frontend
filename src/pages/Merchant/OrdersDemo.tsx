@@ -155,6 +155,7 @@ const OrdersDemo = () => {
     const [dateFilterLoading, setDateFilterLoading] = useState<boolean>(false)
     const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState<boolean>(false)
     const [initialLoading, setInitialLoading] = useState<boolean>(true)
+    const [isStuckInEmptySearch, setIsStuckInEmptySearch] = useState<boolean>(false)
 
     // Pagination states
     const [currentPage, setCurrentPage] = useState<number>(1)
@@ -261,9 +262,10 @@ const OrdersDemo = () => {
         }
     }
 
-    // Handle search
+    // Handle search - FIXED
     const handleSearch = (searchTerm: string) => {
         setSearch(searchTerm)
+        // Only set search mode if there's actually a search term
         setIsSearchMode(searchTerm.trim() !== "")
 
         if (searchTerm.trim() === "") {
@@ -305,8 +307,11 @@ const OrdersDemo = () => {
         }
     }
 
-    // Handle clear search
+    // Handle clear search - FIXED
     const handleClearSearch = () => {
+        setSearch("")
+        setIsSearchMode(false)
+        setIsStuckInEmptySearch(false)
         handleSearch("")
     }
 
@@ -333,18 +338,24 @@ const OrdersDemo = () => {
         }
     }, [hasInitiallyLoaded])
 
-    // Handle search with debounce
+    // Handle search with debounce - FIXED
     useEffect(() => {
         if (!hasInitiallyLoaded) return
 
         const timeoutId = setTimeout(() => {
             if (search.trim() !== "") {
                 handleSearch(search)
+                setIsStuckInEmptySearch(false)
+            } else if (search === "" && isSearchMode) {
+                // User is stuck in empty search mode
+                setIsStuckInEmptySearch(true)
+            } else {
+                setIsStuckInEmptySearch(false)
             }
         }, 500)
 
         return () => clearTimeout(timeoutId)
-    }, [search, hasInitiallyLoaded])
+    }, [search, hasInitiallyLoaded, isSearchMode])
 
     // Clear success message after 3 seconds
     useEffect(() => {
@@ -464,6 +475,16 @@ const OrdersDemo = () => {
         return pages
     }
 
+    // Add this function after handleClearSearch
+    const handleEmergencyClear = () => {
+        setSearch("")
+        setIsSearchMode(false)
+        setIsStuckInEmptySearch(false)
+        const filtered = applyFilters(allOrders, "", dateRange as Date[])
+        setFilteredOrders(filtered)
+        applyPagination(filtered, 1)
+    }
+
     return (
         <div className="mb-8 px-2 sm:px-0">
             {/* Success Message */}
@@ -517,7 +538,22 @@ const OrdersDemo = () => {
                             </div>
                         )}
 
-                        {search && !searchLoading && (
+                        {/* Emergency Clear Button - appears when stuck in empty search */}
+                        {isStuckInEmptySearch && !searchLoading && (
+                            <button
+                                onClick={handleEmergencyClear}
+                                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600 transition-colors flex items-center gap-1"
+                                title="Clear stuck search"
+                            >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Reset
+                            </button>
+                        )}
+
+                        {/* Regular Clear Button - appears when there's text and not stuck */}
+                        {search && !searchLoading && !isStuckInEmptySearch && (
                             <button
                                 onClick={handleClearSearch}
                                 className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-500 text-white text-sm px-2 py-1 rounded hover:bg-gray-600"
@@ -565,7 +601,7 @@ const OrdersDemo = () => {
 
                 {/* Status Messages */}
                 <div className="mt-2 space-y-1">
-                    {isSearchMode && isDateFilterMode && (
+                    {isSearchMode && isDateFilterMode && !isStuckInEmptySearch && (
                         <div className="text-sm text-gray-600">
                             {searchLoading || dateFilterLoading
                                 ? "Searching and filtering..."
@@ -573,7 +609,7 @@ const OrdersDemo = () => {
                         </div>
                     )}
 
-                    {isSearchMode && !isDateFilterMode && (
+                    {isSearchMode && !isDateFilterMode && !isStuckInEmptySearch && (
                         <div className="text-sm text-gray-600">
                             {searchLoading
                                 ? "Searching..."
